@@ -4,7 +4,8 @@
 // File: Logger.mqh
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef LOGGER_MQH
+#define LOGGER_MQH
 
 #include "Types.mqh"
 
@@ -39,3 +40,5 @@ public:
       Print("------------------------------------------------");
    }
 };
+
+#endif

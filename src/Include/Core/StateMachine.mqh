@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef STATEMACHINE_MQH
+#define STATEMACHINE_MQH
+
+#endif

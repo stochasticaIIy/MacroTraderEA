@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef PORTFOLIOMANAGER_MQH
+#define PORTFOLIOMANAGER_MQH
+
+#endif

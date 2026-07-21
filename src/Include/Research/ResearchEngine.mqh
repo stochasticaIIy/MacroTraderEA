@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef RESEARCHENGINE_MQH
+#define RESEARCHENGINE_MQH
+
+#endif

@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef CHARTOBJECTS_MQH
+#define CHARTOBJECTS_MQH
+
+#endif

@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef ACCOUNTMANAGER_MQH
+#define ACCOUNTMANAGER_MQH
+
+#endif

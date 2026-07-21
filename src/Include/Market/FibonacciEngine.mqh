@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef FIBONACCIENGINE_MQH
+#define FIBONACCIENGINE_MQH
+
+#endif

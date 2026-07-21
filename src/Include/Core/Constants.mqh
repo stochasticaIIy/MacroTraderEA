@@ -6,7 +6,9 @@
 // Version: v0.1.0-alpha
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef CONSTANTS_MQH
+#define CONSTANTS_MQH
+
 
 //==============================================================
 // VERSION
@@ -66,3 +68,5 @@
 #define HUD_Y                   20
 
 #define HUD_LINE_HEIGHT         18
+
+#endif

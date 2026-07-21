@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef PATTERNENGINE_MQH
+#define PATTERNENGINE_MQH
+
+#endif

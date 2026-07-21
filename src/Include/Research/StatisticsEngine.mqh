@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef STATISTICSENGINE_MQH
+#define STATISTICSENGINE_MQH
+
+#endif

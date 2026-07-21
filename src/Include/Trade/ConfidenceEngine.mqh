@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef CONFIDENCEENGINE_MQH
+#define CONFIDENCEENGINE_MQH
+
+#endif

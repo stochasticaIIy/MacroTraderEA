@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef ZIGZAG_MQH
+#define ZIGZAG_MQH
+
+#endif

@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef FTMOGUARDIAN_MQH
+#define FTMOGUARDIAN_MQH
+
+#endif

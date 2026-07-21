@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef TRADEIDEAMANAGER_MQH
+#define TRADEIDEAMANAGER_MQH
+
+#endif

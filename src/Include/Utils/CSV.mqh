@@ -4,7 +4,7 @@
 // File:
 // Module:
 // Version: v0.1.0-alpha
-// Author: Mohamed Mesbahiahi
+// Author: Mohamed Mesbahi
 //
 // Description:
 //
@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef CSV_MQH
+#define CSV_MQH
+
+#endif

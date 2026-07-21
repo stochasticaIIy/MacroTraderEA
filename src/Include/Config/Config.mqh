@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef CONFIG_MQH
+#define CONFIG_MQH
+
+#endif

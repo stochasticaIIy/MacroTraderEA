@@ -4,7 +4,7 @@
 // File:
 // Module:
 // Version: v0.1.0-alpha
-// Author: Mohamed Mesbahiahiahi
+// Author: Mohamed Mesbahi
 //
 // Description:
 //
@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef ATR_MQH
+#define ATR_MQH
+
+#endif

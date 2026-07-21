@@ -4,7 +4,9 @@
 // File: Version.mqh
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef VERSION_MQH
+#define VERSION_MQH
+
 
 #include "Constants.mqh"
 
@@ -31,3 +33,5 @@ public:
       return Name() + " v" + Version();
    }
 };
+
+#endif

@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef MONTECARLO_MQH
+#define MONTECARLO_MQH
+
+#endif

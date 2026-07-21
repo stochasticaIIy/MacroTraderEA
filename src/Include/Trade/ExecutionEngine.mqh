@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef EXECUTIONENGINE_MQH
+#define EXECUTIONENGINE_MQH
+
+#endif

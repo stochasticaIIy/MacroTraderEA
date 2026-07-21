@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef INPUTS_MQH
+#define INPUTS_MQH
+
+#endif

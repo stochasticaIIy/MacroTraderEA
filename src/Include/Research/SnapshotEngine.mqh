@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef SNAPSHOTENGINE_MQH
+#define SNAPSHOTENGINE_MQH
+
+#endif

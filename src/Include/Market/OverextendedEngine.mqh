@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef OVEREXTENDEDENGINE_MQH
+#define OVEREXTENDEDENGINE_MQH
+
+#endif

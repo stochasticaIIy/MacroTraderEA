@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef EVENTMANAGER_MQH
+#define EVENTMANAGER_MQH
+
+#endif

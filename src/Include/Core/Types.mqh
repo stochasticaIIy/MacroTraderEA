@@ -6,7 +6,9 @@
 // Version: v0.1.0-alpha
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef TYPES_MQH
+#define TYPES_MQH
+
 
 //==============================================================
 // ENUMERATIONS
@@ -274,3 +276,5 @@ struct TradeSetup
 
    double                  StrategyHealth;
 };
+
+#endif

@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef RISKMANAGER_MQH
+#define RISKMANAGER_MQH
+
+#endif

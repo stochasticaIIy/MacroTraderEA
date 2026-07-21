@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef SREENGINE_MQH
+#define SREENGINE_MQH
+
+#endif

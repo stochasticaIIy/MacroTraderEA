@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef TRENDENGINE_MQH
+#define TRENDENGINE_MQH
+
+#endif

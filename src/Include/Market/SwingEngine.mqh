@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef SWINGENGINE_MQH
+#define SWINGENGINE_MQH
+
+#endif

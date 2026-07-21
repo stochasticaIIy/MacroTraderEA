@@ -14,4 +14,7 @@
 //
 //--------------------------------------------------------------
 
-#pragma once
+#ifndef TIMEUTILS_MQH
+#define TIMEUTILS_MQH
+
+#endif
