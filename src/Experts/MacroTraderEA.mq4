@@ -6,20 +6,25 @@
 #property version "0.10"
 #property description "Macro Trader EA"
 
+#include <Config/Config.mqh>
 #include <Core/Constants.mqh>
+#include <Config/Inputs.mqh>
 #include <Core/Version.mqh>
 #include <Core/Logger.mqh>
 
 CLogger  Logger;
 CVersion EA_Version;
+CConfig Config;
 
 //+------------------------------------------------------------------+
 //| Expert initialization                                            |
 //+------------------------------------------------------------------+
 int OnInit()
 {
+   Config.Load();
    Logger.Separator();
    Logger.Info(EA_Version.FullVersion());
+   Logger.Info("Risk Per Trade: " + DoubleToString(Config.RiskPercent(), 2) + "%");
    Logger.Info("Initialization started...");
    Logger.Info("Initialization completed successfully.");
    Logger.Separator();
