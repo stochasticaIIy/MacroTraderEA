@@ -44,7 +44,7 @@ See the docs folder.
 
 ## Author
 
-Nick Almeida
+Mohamed Mesbahi
 
 ---
 
