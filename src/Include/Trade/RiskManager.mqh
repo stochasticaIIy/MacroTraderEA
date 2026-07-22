@@ -6,26 +6,46 @@ class CRiskManager
 public:
 
    //----------------------------------------------------------
-   // Calculates lot size based on risk percentage
+   // Calculate lot size from account risk and stop-loss distance
+   // stopLossDistance is a PRICE distance (e.g. 0.00250 on EURUSD)
    //----------------------------------------------------------
    double CalculateLotSize(double riskPercent,
-                           double stopLossPips)
+                           double stopLossDistance)
    {
-      if(stopLossPips <= 0.0)
+      if(riskPercent <= 0.0)
+         return(0.0);
+
+      if(stopLossDistance <= 0.0)
          return(0.0);
 
       double balance = AccountBalance();
 
-      double riskAmount = balance * riskPercent / 100.0;
+      double riskMoney = balance * riskPercent / 100.0;
 
       double tickValue = MarketInfo(Symbol(), MODE_TICKVALUE);
+      double tickSize  = MarketInfo(Symbol(), MODE_TICKSIZE);
 
-      double lot = riskAmount / (stopLossPips * tickValue);
+      if(tickValue <= 0.0 || tickSize <= 0.0)
+         return(0.0);
 
-      double minLot = MarketInfo(Symbol(), MODE_MINLOT);
-      double maxLot = MarketInfo(Symbol(), MODE_MAXLOT);
+      // Number of ticks between entry and stop
+      double ticks = stopLossDistance / tickSize;
+
+      if(ticks <= 0.0)
+         return(0.0);
+
+      double lossPerLot = ticks * tickValue;
+
+      if(lossPerLot <= 0.0)
+         return(0.0);
+
+      double lot = riskMoney / lossPerLot;
+
+      double minLot  = MarketInfo(Symbol(), MODE_MINLOT);
+      double maxLot  = MarketInfo(Symbol(), MODE_MAXLOT);
       double lotStep = MarketInfo(Symbol(), MODE_LOTSTEP);
 
+      // Round down to broker lot step
       lot = MathFloor(lot / lotStep) * lotStep;
 
       if(lot < minLot)
@@ -34,9 +54,8 @@ public:
       if(lot > maxLot)
          lot = maxLot;
 
-      return(NormalizeDouble(lot, 2));
+      return NormalizeDouble(lot, 2);
    }
-
 };
 
 #endif

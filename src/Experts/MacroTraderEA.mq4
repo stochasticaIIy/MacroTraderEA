@@ -6,19 +6,28 @@
 #property version "0.10"
 #property description "Macro Trader EA"
 
+#include <Utils/ATR.mqh>
 #include <Config/Config.mqh>
 #include <Core/Constants.mqh>
 #include <Config/Inputs.mqh>
-#include <Core/Version.mqh>
 #include <Core/Logger.mqh>
 #include <Trade/RiskManager.mqh>
-#include <Utils/ATR.mqh>
+#include <Market/SwingEngine.mqh>
+#include <Market/TrendEngine.mqh>
+#include <Core/Version.mqh>
+#include <Utils/ZigZag.mqh>
 
+CATR ATR;
 CLogger  Logger;
 CVersion EA_Version;
 CConfig Config;
 CRiskManager RiskManager;
-CATR ATR;
+CZigZag ZigZag(
+    ZigZagDepth,
+    ZigZagDeviation,
+    ZigZagBackstep);
+    CSwingEngine SwingEngine(ZigZag);
+CTrendEngine TrendEngine(SwingEngine);
 
 //+------------------------------------------------------------------+
 //| Expert initialization                                            |
@@ -26,23 +35,24 @@ CATR ATR;
 int OnInit()
 {
    Config.Load();
+
    double atr = ATR.Current(ATRPeriod);
 
-Logger.Info("ATR: " + DoubleToString(atr, Digits));
+   double slDistance = ATR.StopLossDistance(
+                           ATRPeriod,
+                           StopLossATR);
 
-Logger.Info("SL Distance: " +
-            DoubleToString(
-               ATR.StopLossDistance(
-                  ATRPeriod,
-                  StopLossATR),
-               Digits));
+   double lot = RiskManager.CalculateLotSize(
+                  Config.RiskPercent(),
+                  slDistance);
 
-Logger.Info("TP Distance: " +
-            DoubleToString(
-               ATR.TakeProfitDistance(
-                  ATRPeriod,
-                  TakeProfitATR),
-               Digits));
+   Logger.Info("ATR: " + DoubleToString(atr, Digits));
+
+   Logger.Info("SL Distance: " +
+               DoubleToString(slDistance, Digits));
+
+   Logger.Info("Lot Size: " +
+               DoubleToString(lot,2));
                
    Logger.Separator();
    Logger.Info(EA_Version.FullVersion());
@@ -50,6 +60,76 @@ Logger.Info("TP Distance: " +
    Logger.Info("Initialization started...");
    Logger.Info("Initialization completed successfully.");
    Logger.Separator();
+
+      Logger.Separator();
+   Logger.Info("Testing Swing Engine");
+
+   SwingPoint swing;
+
+   if(SwingEngine.PreviousSwing(1, swing))
+   {
+      Logger.Info("Time: " + TimeToString(swing.Time));
+
+      Logger.Info("Price: " +
+         DoubleToString(swing.Price, Digits));
+
+      if(swing.Type == SWING_HIGH)
+         Logger.Info("Type: HIGH");
+      else
+         Logger.Info("Type: LOW");
+   }
+   else
+   {
+      Logger.Warning("No swing found.");
+   }
+   
+   Logger.Separator();
+   Logger.Info("Recent ZigZag Swings");
+
+   for(int i=1; i<=50; i++)
+   {
+      if(ZigZag.IsSwing(i))
+      {
+         Logger.Info(
+            "Bar "
+            + IntegerToString(i)
+            + " Price="
+            + DoubleToString(
+               ZigZag.SwingPrice(i),
+               Digits));
+      }
+   }
+
+   Logger.Separator();
+   Logger.Info("Trend Engine");
+
+   TrendInfo trend;
+
+   if(TrendEngine.Analyze(trend))
+   {
+      switch(trend.Trend)
+      {
+         case TREND_UP:
+            Logger.Info("Trend: UP");
+            break;
+
+         case TREND_DOWN:
+            Logger.Info("Trend: DOWN");
+            break;
+
+         case TREND_RANGE:
+            Logger.Info("Trend: RANGE");
+            break;
+
+         default:
+            Logger.Info("Trend: UNKNOWN");
+            break;
+      }
+   }
+   else
+   {
+      Logger.Warning("Unable to determine trend.");
+   }
 
    return(INIT_SUCCEEDED);
 }
