@@ -11,10 +11,14 @@
 #include <Config/Inputs.mqh>
 #include <Core/Version.mqh>
 #include <Core/Logger.mqh>
+#include <Trade/RiskManager.mqh>
+#include <Utils/ATR.mqh>
 
 CLogger  Logger;
 CVersion EA_Version;
 CConfig Config;
+CRiskManager RiskManager;
+CATR ATR;
 
 //+------------------------------------------------------------------+
 //| Expert initialization                                            |
@@ -22,6 +26,24 @@ CConfig Config;
 int OnInit()
 {
    Config.Load();
+   double atr = ATR.Current(ATRPeriod);
+
+Logger.Info("ATR: " + DoubleToString(atr, Digits));
+
+Logger.Info("SL Distance: " +
+            DoubleToString(
+               ATR.StopLossDistance(
+                  ATRPeriod,
+                  StopLossATR),
+               Digits));
+
+Logger.Info("TP Distance: " +
+            DoubleToString(
+               ATR.TakeProfitDistance(
+                  ATRPeriod,
+                  TakeProfitATR),
+               Digits));
+               
    Logger.Separator();
    Logger.Info(EA_Version.FullVersion());
    Logger.Info("Risk Per Trade: " + DoubleToString(Config.RiskPercent(), 2) + "%");
