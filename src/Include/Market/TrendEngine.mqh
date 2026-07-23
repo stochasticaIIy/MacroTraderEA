@@ -29,6 +29,10 @@ public:
       trend.Trend   = TREND_UNKNOWN;
 
       SwingPoint swings[4];
+      for(int i=0;i<4;i++)
+      {
+         swings[i].IsValid = false;
+      }
 
       int found = 0;
       int shift = 1;

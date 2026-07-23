@@ -13,6 +13,7 @@
 #include <Core/Logger.mqh>
 #include <Trade/RiskManager.mqh>
 #include <Market/SwingEngine.mqh>
+#include <Market/SwingFilter.mqh>
 #include <Market/TrendEngine.mqh>
 #include <Core/Version.mqh>
 #include <Utils/ZigZag.mqh>
@@ -22,6 +23,7 @@ CLogger  Logger;
 CVersion EA_Version;
 CConfig Config;
 CRiskManager RiskManager;
+CSwingFilter SwingFilter(ATR);
 CZigZag ZigZag(
     ZigZagDepth,
     ZigZagDeviation,
@@ -129,6 +131,25 @@ int OnInit()
    else
    {
       Logger.Warning("Unable to determine trend.");
+   }
+
+   SwingPoint s1;
+   SwingPoint s2;
+
+   if(SwingEngine.PreviousSwing(1, s1) &&
+      SwingEngine.PreviousSwing(10, s2))
+   {
+      bool significant =
+         SwingFilter.IsSignificant(
+            s1.Price,
+            s2.Price);
+
+      Logger.Info("Swing Filter: " +
+         string(significant ? "PASS" : "FAIL"));
+   }
+   else
+   {
+      Logger.Warning("Unable to test Swing Filter.");
    }
 
    return(INIT_SUCCEEDED);
