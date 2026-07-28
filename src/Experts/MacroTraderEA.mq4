@@ -152,6 +152,95 @@ int OnInit()
       Logger.Warning("Unable to test Swing Filter.");
    }
 
+   Logger.Separator();
+   Logger.Info("Latest Swing High Test");
+
+   SwingPoint lastHigh;
+
+   if(SwingEngine.GetLastSwingHigh(lastHigh))
+   {
+      Logger.Info("Latest High Price: "
+         + DoubleToString(lastHigh.Price, Digits));
+
+      Logger.Info("Time: "
+         + TimeToString(lastHigh.Time));
+   }
+   else
+   {
+   Logger.Warning("No swing high found.");
+   }
+
+   Logger.Separator();
+   Logger.Info("Latest Swing Low Test");
+
+   SwingPoint lastLow;
+
+   if(SwingEngine.GetLastSwingLow(lastLow))
+   {
+      Logger.Info("Latest Low Price: "
+         + DoubleToString(lastLow.Price, Digits));
+
+      Logger.Info("Time: "
+         + TimeToString(lastLow.Time));
+   }
+   else
+   {
+      Logger.Warning("No swing low found.");
+   }
+
+   Logger.Separator();
+   Logger.Info("Last 4 Swings Test");
+
+   SwingPoint swings[4];
+
+   if(SwingEngine.GetLastSwings(swings, 4))
+   {
+      for(int i = 0; i < 4; i++)
+      {
+         string type =
+            (swings[i].Type == SWING_HIGH)
+            ? "HIGH"
+            : "LOW";
+
+         Logger.Info(
+            IntegerToString(i + 1)
+            + ": "
+            + type
+            + " "
+            + DoubleToString(swings[i].Price, Digits));
+      }
+   }
+   else
+   {
+      Logger.Warning("Less than 4 swings found.");
+   }
+
+   Logger.Separator();
+   Logger.Info("Previous Swing Test");
+
+   SwingPoint latest;
+   SwingPoint previous;
+
+   if(SwingEngine.GetLastSwingHigh(latest))
+   {
+      if(SwingEngine.GetPreviousSwing(latest, previous))
+      {
+         Logger.Info("Latest : "
+            + DoubleToString(latest.Price, Digits));
+
+         Logger.Info("Previous : "
+            + DoubleToString(previous.Price, Digits));
+      }
+      else
+      {
+         Logger.Warning("No previous swing found.");
+      }
+   }
+   else
+   {
+      Logger.Warning("No latest swing found.");
+   }
+
    return(INIT_SUCCEEDED);
 }
 

@@ -60,6 +60,101 @@ public:
       return(false);
    }
 
+   //----------------------------------------------------------
+   // Get latest confirmed Swing High
+   //----------------------------------------------------------
+   bool GetLastSwingHigh(SwingPoint &swing)
+   {
+      for(int i = 1; i < Bars; i++)
+      {
+         SwingPoint current;
+
+         if(!GetSwing(i, current))
+            continue;
+
+         if(current.Type == SWING_HIGH)
+         {
+            swing = current;
+            return(true);
+         }
+      }
+
+      return(false);
+   }
+
+   //----------------------------------------------------------
+   // Get latest confirmed Swing Low
+   //----------------------------------------------------------
+   bool GetLastSwingLow(SwingPoint &swing)
+   {
+      for(int i = 1; i < Bars; i++)
+      {
+         SwingPoint current;
+
+         if(!GetSwing(i, current))
+            continue;
+
+         if(current.Type == SWING_LOW)
+         {
+            swing = current;
+            return(true);
+         }
+      }
+
+      return(false);
+   }
+
+   //----------------------------------------------------------
+   // Get the last N confirmed swings
+   //----------------------------------------------------------
+   bool GetLastSwings(SwingPoint &swings[], int count)
+   {
+      int found = 0;
+
+      for(int i = 1; i < Bars && found < count; i++)
+      {
+         SwingPoint current;
+
+         if(!GetSwing(i, current))
+            continue;
+
+         swings[found] = current;
+         found++;
+      }
+
+      return(found == count);
+   }
+
+   //----------------------------------------------------------
+   // Get the swing immediately preceding another swing
+   //----------------------------------------------------------
+   bool GetPreviousSwing(const SwingPoint &current,
+                        SwingPoint &previous)
+   {
+      bool foundCurrent = false;
+
+      for(int i = 1; i < Bars; i++)
+      {
+         SwingPoint s;
+
+         if(!GetSwing(i, s))
+            continue;
+
+         if(!foundCurrent)
+         {
+            if(s.Time == current.Time)
+               foundCurrent = true;
+
+            continue;
+         }
+
+         previous = s;
+         return(true);
+      }
+
+      return(false);
+   }
+
 };
 
 #endif
