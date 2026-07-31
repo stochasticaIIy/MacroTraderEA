@@ -9,6 +9,7 @@
 #include <Utils/ATR.mqh>
 #include <Config/Config.mqh>
 #include <Core/Constants.mqh>
+#include <Utils/Fibonacci.mqh>
 #include <Config/Inputs.mqh>
 #include <Core/Logger.mqh>
 #include <Trade/RiskManager.mqh>
@@ -19,6 +20,7 @@
 #include <Utils/ZigZag.mqh>
 
 CATR ATR;
+CFibonacci Fibonacci;
 CLogger  Logger;
 CVersion EA_Version;
 CConfig Config;
@@ -279,6 +281,47 @@ int OnInit()
    else
    {
       Logger.Warning("No latest swing found.");
+   }
+
+   Logger.Separator();
+   Logger.Info("Fibonacci Test");
+
+   SwingPoint fibHigh;
+   SwingPoint fibLow;
+
+   FibData fibData;
+
+   if(SwingEngine.GetLastSwingHigh(fibHigh) &&
+   SwingEngine.GetLastSwingLow(fibLow))
+   {
+      if(Fibonacci.Calculate(
+         fibHigh.Price,
+         fibLow.Price,
+         fibData))
+      {
+         Logger.Info("High : " +
+            DoubleToString(fibData.High, Digits));
+
+         Logger.Info("Low : " +
+            DoubleToString(fibData.Low, Digits));
+
+         Logger.Info("38.2 : " +
+            DoubleToString(fibData.Fib382, Digits));
+
+         Logger.Info("50.0 : " +
+            DoubleToString(fibData.Fib500, Digits));
+
+         Logger.Info("61.8 : " +
+            DoubleToString(fibData.Fib618, Digits));
+      }
+      else
+      {
+         Logger.Warning("Unable to calculate Fibonacci.");
+      }
+   }
+   else
+   {
+      Logger.Warning("Not enough swings.");
    }
 
    return(INIT_SUCCEEDED);
