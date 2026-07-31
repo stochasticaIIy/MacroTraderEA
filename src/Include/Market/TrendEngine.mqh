@@ -27,6 +27,11 @@ public:
    {
       trend.IsValid = false;
       trend.Trend   = TREND_UNKNOWN;
+      trend.HH = 0;
+      trend.HL = 0;
+      trend.LH = 0;
+      trend.LL = 0;
+      trend.Strength = 0.0;
 
       SwingPoint swings[4];
       for(int i=0;i<4;i++)
@@ -49,7 +54,7 @@ public:
 
          shift++;
       }
-
+      
       if(found < 4)
          return(false);
 
@@ -75,6 +80,9 @@ public:
          {
             trend.IsValid = true;
             trend.Trend = TREND_UP;
+            trend.HH = 1;
+            trend.HL = 1;
+            trend.Strength = 1.0;
             return(true);
          }
 
@@ -88,6 +96,9 @@ public:
          {
             trend.IsValid = true;
             trend.Trend = TREND_DOWN;
+            trend.LH = 1;
+            trend.LL = 1;
+            trend.Strength = 1.0;
             return(true);
          }
       }
@@ -96,6 +107,19 @@ public:
       trend.Trend = TREND_RANGE;
 
       return(true);
+   }
+
+   //----------------------------------------------------------
+   // Is the market ranging?
+   //----------------------------------------------------------
+   bool IsRange()
+   {
+      TrendInfo trend;
+
+      if(!Analyze(trend))
+         return(false);
+
+      return(trend.Trend == TREND_RANGE);
    }
 
 };

@@ -133,6 +133,48 @@ int OnInit()
       Logger.Warning("Unable to determine trend.");
    }
 
+   Logger.Info("HH: " + IntegerToString(trend.HH));
+   Logger.Info("HL: " + IntegerToString(trend.HL));
+   Logger.Info("LH: " + IntegerToString(trend.LH));
+   Logger.Info("LL: " + IntegerToString(trend.LL));
+
+   Logger.Info("Strength: "
+      + DoubleToString(trend.Strength, 2));
+
+   Logger.Separator();
+   Logger.Info("Trend Structure Test");
+
+   SwingPoint swings[4];
+
+   if(SwingEngine.GetLastSwings(swings, 4))
+   {
+      for(int i=0; i<4; i++)
+      {
+         string type =
+            swings[i].Type == SWING_HIGH
+            ? "HIGH"
+            : "LOW";
+
+         Logger.Info(
+            "Swing "
+            + IntegerToString(i + 1)
+            + " "
+            + type
+            + " "
+            + DoubleToString(
+               swings[i].Price,
+               Digits));
+      }
+   }
+
+   Logger.Separator();
+   Logger.Info("Range Test");
+
+   if(TrendEngine.IsRange())
+      Logger.Info("Market State : RANGE");
+   else
+      Logger.Info("Market State : TREND");
+
    SwingPoint s1;
    SwingPoint s2;
 
@@ -190,8 +232,6 @@ int OnInit()
 
    Logger.Separator();
    Logger.Info("Last 4 Swings Test");
-
-   SwingPoint swings[4];
 
    if(SwingEngine.GetLastSwings(swings, 4))
    {
