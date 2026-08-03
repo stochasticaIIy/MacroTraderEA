@@ -34,28 +34,8 @@ public:
       trend.Strength = 0.0;
 
       SwingPoint swings[4];
-      for(int i=0;i<4;i++)
-      {
-         swings[i].IsValid = false;
-      }
 
-      int found = 0;
-      int shift = 1;
-
-      while(found < 4 && shift < Bars)
-      {
-         SwingPoint s;
-
-         if(m_swingEngine.GetSwing(shift, s))
-         {
-            swings[found] = s;
-            found++;
-         }
-
-         shift++;
-      }
-      
-      if(found < 4)
+      if(!m_swingEngine.GetLastSwings(swings, 4))
          return(false);
 
       // Most recent first:
@@ -65,16 +45,45 @@ public:
       // swings[2]
       // swings[3]
 
-      if(swings[0].Type == SWING_HIGH &&
+      bool highLowHighLow =
+         swings[0].Type == SWING_HIGH &&
          swings[1].Type == SWING_LOW &&
          swings[2].Type == SWING_HIGH &&
-         swings[3].Type == SWING_LOW)
-      {
-         bool higherHigh =
-            swings[0].Price > swings[2].Price;
+         swings[3].Type == SWING_LOW;
 
-         bool higherLow =
-            swings[1].Price > swings[3].Price;
+      bool lowHighLowHigh =
+         swings[0].Type == SWING_LOW &&
+         swings[1].Type == SWING_HIGH &&
+         swings[2].Type == SWING_LOW &&
+         swings[3].Type == SWING_HIGH;
+
+      if(highLowHighLow || lowHighLowHigh)
+      {
+         double newestHigh;
+         double previousHigh;
+
+         double newestLow;
+         double previousLow;
+
+         if(highLowHighLow)
+         {
+            newestHigh   = swings[0].Price;
+            previousHigh = swings[2].Price;
+
+            newestLow    = swings[1].Price;
+            previousLow  = swings[3].Price;
+         }
+         else
+         {
+            newestHigh   = swings[1].Price;
+            previousHigh = swings[3].Price;
+
+            newestLow    = swings[0].Price;
+            previousLow  = swings[2].Price;
+         }
+
+         bool higherHigh = newestHigh > previousHigh;
+         bool higherLow  = newestLow  > previousLow;
 
          if(higherHigh && higherLow)
          {
@@ -86,11 +95,8 @@ public:
             return(true);
          }
 
-         bool lowerHigh =
-            swings[0].Price < swings[2].Price;
-
-         bool lowerLow =
-            swings[1].Price < swings[3].Price;
+         bool lowerHigh = newestHigh < previousHigh;
+         bool lowerLow  = newestLow  < previousLow;
 
          if(lowerHigh && lowerLow)
          {
@@ -120,6 +126,41 @@ public:
          return(false);
 
       return(trend.Trend == TREND_RANGE);
+   }
+
+//----------------------------------------------------------
+// Get the active impulse for Fibonacci
+//----------------------------------------------------------
+   bool GetActiveImpulse(SwingPoint &start,
+                        SwingPoint &end)
+   {
+      TrendInfo trend;
+
+      if(!Analyze(trend))
+         return(false);
+
+      SwingPoint swings[4];
+
+      if(!m_swingEngine->GetLastSwings(swings, 4))
+         return(false);
+
+      if(trend.Trend == TREND_UP)
+      {
+         // Higher Low -> Higher High
+         start = swings[0];
+         end   = swings[1];
+         return(true);
+      }
+
+      if(trend.Trend == TREND_DOWN)
+      {
+         // Lower High -> Lower Low
+         start = swings[0];
+         end   = swings[1];
+         return(true);
+      }
+
+      return(false);
    }
 
 };
