@@ -141,22 +141,51 @@ public:
 
       SwingPoint swings[4];
 
-      if(!m_swingEngine->GetLastSwings(swings, 4))
+      for(int i = 0; i < 4; i++)
+         swings[i].IsValid = false;
+
+      int found = 0;
+      int shift = 1;
+
+      while(found < 4 && shift < Bars)
+      {
+         SwingPoint s;
+
+         if(m_swingEngine.GetSwing(shift, s))
+         {
+            swings[found] = s;
+            found++;
+         }
+
+         shift++;
+      }
+
+      if(found < 2)
          return(false);
 
       if(trend.Trend == TREND_UP)
       {
-         // Higher Low -> Higher High
+         // Latest LOW -> Latest HIGH
+         if(swings[0].Type != SWING_LOW ||
+            swings[1].Type != SWING_HIGH)
+            return(false);
+
          start = swings[0];
          end   = swings[1];
+
          return(true);
       }
 
       if(trend.Trend == TREND_DOWN)
       {
-         // Lower High -> Lower Low
-         start = swings[0];
-         end   = swings[1];
+         // Latest HIGH -> Latest LOW
+         if(swings[0].Type != SWING_LOW ||
+            swings[1].Type != SWING_HIGH)
+            return(false);
+
+         start = swings[1];
+         end   = swings[0];
+
          return(true);
       }
 
