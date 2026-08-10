@@ -13,8 +13,10 @@
 #include <Market/FibonacciEngine.mqh>
 #include <Config/Inputs.mqh>
 #include <Core/Logger.mqh>
+#include <Market/PatternEngine.mqh>
 #include <Utils/PullbackEngine.mqh>
 #include <Trade/RiskManager.mqh>
+#include <Market/SupportResistance.mqh>
 #include <Market/SwingEngine.mqh>
 #include <Market/SwingFilter.mqh>
 #include <Market/TrendEngine.mqh>
@@ -24,7 +26,9 @@
 CATR ATR;
 CFibonacci Fibonacci;
 CLogger  Logger;
+CPatternEngine PatternEngine;
 CPullbackEngine PullbackEngine;
+CSupportResistance SupportResistance;
 CVersion EA_Version;
 CConfig Config;
 CRiskManager RiskManager;
@@ -286,9 +290,6 @@ int OnInit()
       Logger.Warning("No latest swing found.");
    }
 
-   Logger.Separator();
-   Logger.Info("Fibonacci Test");
-
    SwingPoint fibHigh;
    SwingPoint fibLow;
 
@@ -387,98 +388,383 @@ int OnInit()
    }
 
    //----------------------------------------------------------
-// Pullback Engine Test
+   // First Pullback Test
+   //----------------------------------------------------------
+   Logger.Separator();
+   Logger.Info("First Pullback Test");
+
+   TrendInfo pullbackTrend;
+
+   if(!TrendEngine.Analyze(pullbackTrend))
+   {
+      Logger.Warning(
+         "Unable to determine trend for pullback.");
+   }
+   else
+   if(pullbackTrend.Trend == TREND_RANGE ||
+      pullbackTrend.Trend == TREND_UNKNOWN)
+   {
+      Logger.Info(
+         "Pullback Test skipped: Market is not trending.");
+   }
+   else
+   {
+      SwingPoint pullbackStart;
+      SwingPoint pullbackEnd;
+      FibData pullbackFib;
+
+      if(!TrendEngine.GetActiveImpulse(
+            pullbackStart,
+            pullbackEnd))
+      {
+         Logger.Warning(
+            "Unable to determine active impulse for pullback.");
+      }
+      else
+      {
+         bool fibReady = false;
+
+         if(pullbackStart.Type == SWING_LOW &&
+            pullbackEnd.Type == SWING_HIGH)
+         {
+            fibReady = Fibonacci.Calculate(
+               pullbackEnd.Price,
+               pullbackStart.Price,
+               pullbackFib);
+         }
+         else
+         if(pullbackStart.Type == SWING_HIGH &&
+            pullbackEnd.Type == SWING_LOW)
+         {
+            fibReady = Fibonacci.Calculate(
+               pullbackStart.Price,
+               pullbackEnd.Price,
+               pullbackFib);
+         }
+
+         if(!fibReady)
+         {
+            Logger.Warning(
+               "Unable to calculate pullback Fibonacci.");
+         }
+         else
+         {
+            bool firstPullback =
+               PullbackEngine.FirstPullbackReached(
+                  pullbackTrend.Trend,
+                  pullbackFib.High,
+                  pullbackFib.Low,
+                  pullbackEnd.Time);
+
+            Logger.Info(
+               "Impulse End: "
+               + TimeToString(
+                  pullbackEnd.Time));
+
+            Logger.Info(
+               "38.2 Level: "
+               + DoubleToString(
+                  pullbackFib.Fib382,
+                  Digits));
+
+            if(firstPullback)
+            {
+               Logger.Info(
+                  "First Pullback: REACHED");
+            }
+            else
+            {
+               Logger.Info(
+                  "First Pullback: NOT REACHED");
+            }
+         }
+      }
+   }
+
+   //----------------------------------------------------------
+// Support / Resistance Test
 //----------------------------------------------------------
 Logger.Separator();
-Logger.Info("Pullback Engine Test");
+Logger.Info("Support / Resistance Test");
+
+double currentPrice = Close[1];
+
+// Use half an ATR as the initial zone tolerance.
+double srTolerance =
+   ATR.Current(ATRPeriod) * 0.5;
+
+Logger.Info(
+   "Current Price: "
+   + DoubleToString(
+      currentPrice,
+      Digits));
+
+Logger.Info(
+   "S/R Tolerance: "
+   + DoubleToString(
+      srTolerance,
+      Digits));
 
 //----------------------------------------------------------
-// UP TREND TEST
+// Support
 //----------------------------------------------------------
-   double testHigh = 7600.0;
-   double testLow  = 7500.0;
+SRZone supportZone;
 
-   double testRange = testHigh - testLow;
-   double testFib382 = testHigh - (testRange * 0.382);
+if(SupportResistance.FindSupport(
+      currentPrice,
+      srTolerance,
+      supportZone))
+{
+   Logger.Info("Support Found");
 
-   Logger.Info("UPTREND");
-   Logger.Info("High: " +
-      DoubleToString(testHigh, 2));
+   Logger.Info(
+      "Support Lower: "
+      + DoubleToString(
+         supportZone.Lower,
+         Digits));
 
-   Logger.Info("Low: " +
-      DoubleToString(testLow, 2));
-
-   Logger.Info("38.2: " +
-      DoubleToString(testFib382, 2));
-
-   // Price above 38.2% = not enough retracement
-   double priceAbove = 7570.0;
-
-   bool upAbove =
-      PullbackEngine.IsUpPullbackValid(
-         testHigh,
-         testLow,
-         priceAbove);
-
-   Logger.Info("Price 7570.00: " +
-      (upAbove ? "PASS" : "FAIL"));
-
-   // Price below 38.2% = valid 38.2% retracement
-   double priceBelow = 7550.0;
-
-   bool upBelow =
-      PullbackEngine.IsUpPullbackValid(
-         testHigh,
-         testLow,
-         priceBelow);
-
-   Logger.Info("Price 7550.00: " +
-      (upBelow ? "PASS" : "FAIL"));
+   Logger.Info(
+      "Support Upper: "
+      + DoubleToString(
+         supportZone.Upper,
+         Digits));
+}
+else
+{
+   Logger.Info("No Support Found");
+}
 
    //----------------------------------------------------------
-   // DOWN TREND TEST
+   // Resistance
    //----------------------------------------------------------
-   double downHigh = 7600.0;
-   double downLow  = 7500.0;
+   SRZone resistanceZone;
 
-   double downRange = downHigh - downLow;
-   double downFib382 =
-      downLow + (downRange * 0.382);
+   if(SupportResistance.FindResistance(
+         currentPrice,
+         srTolerance,
+         resistanceZone))
+   {
+      Logger.Info("Resistance Found");
 
-   Logger.Info("DOWNTREND");
+      Logger.Info(
+         "Resistance Lower: "
+         + DoubleToString(
+            resistanceZone.Lower,
+            Digits));
 
-   Logger.Info("High: " +
-      DoubleToString(downHigh, 2));
+      Logger.Info(
+         "Resistance Upper: "
+         + DoubleToString(
+            resistanceZone.Upper,
+            Digits));
+   }
+   else
+   {
+      Logger.Info("No Resistance Found");
+   }
 
-   Logger.Info("Low: " +
-      DoubleToString(downLow, 2));
+   //----------------------------------------------------------
+   // S/R Significance Test
+   //----------------------------------------------------------
+   Logger.Separator();
+   Logger.Info("S/R Significance Test");
 
-   Logger.Info("38.2: " +
-      DoubleToString(downFib382, 2));
+   if(supportZone.IsValid)
+   {
+      double supportPrice =
+         (supportZone.Lower +
+         supportZone.Upper) / 2.0;
 
-   // Price below 38.2% = not enough retracement
-   double downBelow = 7530.0;
+      int supportTouches =
+         SupportResistance.CountTouches(
+            supportPrice,
+            srTolerance);
 
-   bool downBelowResult =
-      PullbackEngine.IsDownPullbackValid(
-         downHigh,
-         downLow,
-         downBelow);
+      double supportStrength =
+         SupportResistance.CalculateStrength(
+            supportTouches);
 
-   Logger.Info("Price 7530.00: " +
-      (downBelowResult ? "PASS" : "FAIL"));
+      bool supportSignificant =
+         SupportResistance.IsSignificant(
+            supportTouches);
 
-   // Price above 38.2% = valid 38.2% retracement
-   double downAbove = 7550.0;
+      Logger.Info(
+         "Support Touches: "
+         + IntegerToString(
+            supportTouches));
 
-   bool downAboveResult =
-      PullbackEngine.IsDownPullbackValid(
-         downHigh,
-         downLow,
-         downAbove);
+      Logger.Info(
+         "Support Strength: "
+         + DoubleToString(
+            supportStrength,
+            2));
 
-   Logger.Info("Price 7550.00: " +
-      (downAboveResult ? "PASS" : "FAIL"));
+      Logger.Info(
+         "Support Significant: "
+         + string(
+            supportSignificant
+            ? "YES"
+            : "NO"));
+   }
+   else
+   {
+      Logger.Info("No valid support zone.");
+   }
+
+   if(resistanceZone.IsValid)
+   {
+      double resistancePrice =
+         (resistanceZone.Lower +
+         resistanceZone.Upper) / 2.0;
+
+      int resistanceTouches =
+         SupportResistance.CountTouches(
+            resistancePrice,
+            srTolerance);
+
+      double resistanceStrength =
+         SupportResistance.CalculateStrength(
+            resistanceTouches);
+
+      bool resistanceSignificant =
+         SupportResistance.IsSignificant(
+            resistanceTouches);
+
+      Logger.Info(
+         "Resistance Touches: "
+         + IntegerToString(
+            resistanceTouches));
+
+      Logger.Info(
+         "Resistance Strength: "
+         + DoubleToString(
+            resistanceStrength,
+            2));
+
+      Logger.Info(
+         "Resistance Significant: "
+         + string(
+            resistanceSignificant
+            ? "YES"
+            : "NO"));
+   }
+   else
+   {
+      Logger.Info("No valid resistance zone.");
+   }
+
+   //----------------------------------------------------------
+   // Break & Retest Test
+   //----------------------------------------------------------
+   Logger.Separator();
+   Logger.Info("Break & Retest Test");
+
+   TrendInfo patternTrend;
+
+   if(!TrendEngine.Analyze(patternTrend))
+   {
+      Logger.Warning(
+         "Unable to determine trend for pattern test.");
+   }
+   else
+   if(patternTrend.Trend == TREND_UP ||
+      patternTrend.Trend == TREND_DOWN)
+   {
+      double patternLevel = 0.0;
+
+      if(patternTrend.Trend == TREND_UP &&
+         resistanceZone.IsValid)
+      {
+         patternLevel =
+            (resistanceZone.Lower +
+            resistanceZone.Upper) / 2.0;
+      }
+      else
+      if(patternTrend.Trend == TREND_DOWN &&
+         supportZone.IsValid)
+      {
+         patternLevel =
+            (supportZone.Lower +
+            supportZone.Upper) / 2.0;
+      }
+
+      if(patternLevel > 0.0)
+      {
+         bool breakRetest =
+            PatternEngine.IsBreakRetest(
+               patternLevel,
+               patternTrend.Trend,
+               100);
+
+         Logger.Info(
+            "Pattern Level: "
+            + DoubleToString(
+               patternLevel,
+               Digits));
+
+         if(breakRetest)
+         {
+            Logger.Info(
+               "Break & Retest: DETECTED");
+         }
+         else
+         {
+            Logger.Info(
+               "Break & Retest: NOT DETECTED");
+         }
+      }
+      else
+      {
+         Logger.Info(
+            "No suitable S/R level for pattern test.");
+      }
+   }
+   else
+   {
+      Logger.Info(
+         "Pattern test skipped: Market is not trending.");
+   }
+
+   //----------------------------------------------------------
+   // W / M Pattern Test
+   //----------------------------------------------------------
+   Logger.Separator();
+   Logger.Info("W / M Pattern Test");
+
+   double patternTolerance =
+      ATR.Current(ATRPeriod) * 0.5;
+
+   bool wPattern =
+      PatternEngine.IsWPattern(
+         patternTolerance);
+
+   bool mPattern =
+      PatternEngine.IsMPattern(
+         patternTolerance);
+
+   Logger.Info(
+      "Pattern Tolerance: "
+      + DoubleToString(
+         patternTolerance,
+         Digits));
+
+   if(wPattern)
+   {
+      Logger.Info("W Pattern: DETECTED");
+   }
+   else
+   {
+      Logger.Info("W Pattern: NOT DETECTED");
+   }
+
+   if(mPattern)
+   {
+      Logger.Info("M Pattern: DETECTED");
+   }
+   else
+   {
+      Logger.Info("M Pattern: NOT DETECTED");
+   }
 
    return(INIT_SUCCEEDED);
 }
