@@ -766,6 +766,127 @@ else
       Logger.Info("M Pattern: NOT DETECTED");
    }
 
+   //----------------------------------------------------------
+   // Head & Shoulders Test
+   //----------------------------------------------------------
+   Logger.Separator();
+   Logger.Info("Head & Shoulders Test");
+
+   double hsTolerance =
+      ATR.Current(ATRPeriod) * 0.5;
+
+   bool headShoulders =
+      PatternEngine.IsHeadAndShoulders(
+         hsTolerance);
+
+   bool inverseHeadShoulders =
+      PatternEngine.IsInverseHeadAndShoulders(
+         hsTolerance);
+
+   Logger.Info(
+      "Shoulder Tolerance: "
+      + DoubleToString(
+         hsTolerance,
+         Digits));
+
+   if(headShoulders)
+   {
+      Logger.Info(
+         "Head & Shoulders: DETECTED");
+   }
+   else
+   {
+      Logger.Info(
+         "Head & Shoulders: NOT DETECTED");
+   }
+
+   if(inverseHeadShoulders)
+   {
+      Logger.Info(
+         "Inverse Head & Shoulders: DETECTED");
+   }
+   else
+   {
+      Logger.Info(
+         "Inverse Head & Shoulders: NOT DETECTED");
+   }
+
+   //----------------------------------------------------------
+   // Fair Value Gap Test
+   //----------------------------------------------------------
+   Logger.Separator();
+   Logger.Info("Fair Value Gap Test");
+
+   bool bullishFVG =
+      PatternEngine.IsBullishFVG(1);
+
+   bool bearishFVG =
+      PatternEngine.IsBearishFVG(1);
+
+   if(bullishFVG)
+   {
+      double bullishLower;
+      double bullishUpper;
+
+      if(PatternEngine.GetBullishFVG(
+            1,
+            bullishLower,
+            bullishUpper))
+      {
+         Logger.Info(
+            "Bullish FVG: DETECTED");
+
+         Logger.Info(
+            "Bullish FVG Lower: "
+            + DoubleToString(
+               bullishLower,
+               Digits));
+
+         Logger.Info(
+            "Bullish FVG Upper: "
+            + DoubleToString(
+               bullishUpper,
+               Digits));
+      }
+   }
+   else
+   {
+      Logger.Info(
+         "Bullish FVG: NOT DETECTED");
+   }
+
+   if(bearishFVG)
+   {
+      double bearishLower;
+      double bearishUpper;
+
+      if(PatternEngine.GetBearishFVG(
+            1,
+            bearishLower,
+            bearishUpper))
+      {
+         Logger.Info(
+            "Bearish FVG: DETECTED");
+
+         Logger.Info(
+            "Bearish FVG Lower: "
+            + DoubleToString(
+               bearishLower,
+               Digits));
+
+         Logger.Info(
+            "Bearish FVG Upper: "
+            + DoubleToString(
+               bearishUpper,
+               Digits));
+      }
+   }
+   else
+   {
+      Logger.Info(
+         "Bearish FVG: NOT DETECTED");
+   }
+
    return(INIT_SUCCEEDED);
 }
 
