@@ -16,6 +16,7 @@
 #include <Market/PatternEngine.mqh>
 #include <Utils/PullbackEngine.mqh>
 #include <Trade/RiskManager.mqh>
+#include <Core/SetupEngine.mqh>
 #include <Market/SupportResistance.mqh>
 #include <Market/SwingEngine.mqh>
 #include <Market/SwingFilter.mqh>
@@ -28,6 +29,7 @@ CFibonacci Fibonacci;
 CLogger  Logger;
 CPatternEngine PatternEngine;
 CPullbackEngine PullbackEngine;
+CSetupEngine SetupEngine;
 CSupportResistance SupportResistance;
 CVersion EA_Version;
 CConfig Config;
@@ -885,6 +887,197 @@ else
    {
       Logger.Info(
          "Bearish FVG: NOT DETECTED");
+   }
+
+   //----------------------------------------------------------
+   // Unified Pattern Analysis Test
+   //----------------------------------------------------------
+   Logger.Separator();
+   Logger.Info("Unified Pattern Analysis Test");
+
+   PatternData detectedPattern;
+
+   if(PatternEngine.Analyze(detectedPattern))
+   {
+      if(detectedPattern.IsValid)
+      {
+         Logger.Info(
+            "Pattern Detected");
+
+         Logger.Info(
+            "Pattern Score: "
+            + DoubleToString(
+               detectedPattern.Score,
+               2));
+
+         Logger.Info(
+            "Detection Time: "
+            + TimeToString(
+               detectedPattern.DetectionTime));
+
+         switch(detectedPattern.Pattern)
+         {
+            case PATTERN_W:
+               Logger.Info("Pattern Type: W");
+               break;
+
+            case PATTERN_M:
+               Logger.Info("Pattern Type: M");
+               break;
+
+            case PATTERN_HEAD_SHOULDERS:
+               Logger.Info(
+                  "Pattern Type: HEAD & SHOULDERS");
+               break;
+
+            case PATTERN_INVERSE_HEAD_SHOULDERS:
+               Logger.Info(
+                  "Pattern Type: INVERSE HEAD & SHOULDERS");
+               break;
+
+            case PATTERN_FVG:
+               Logger.Info("Pattern Type: FVG");
+               break;
+
+            default:
+               Logger.Info("Pattern Type: UNKNOWN");
+               break;
+         }
+      }
+      else
+      {
+         Logger.Info("No pattern detected.");
+      }
+   }
+   else
+   {
+      Logger.Warning(
+         "Pattern analysis failed.");
+   }
+
+   //----------------------------------------------------------
+   // Preliminary Trade Setup Test
+   //----------------------------------------------------------
+   Logger.Separator();
+   Logger.Info("Preliminary Trade Setup Test");
+
+   TrendInfo setupTrend;
+   FibData setupFib;
+   PatternData setupPattern;
+   SRZone setupZone;
+   TradeSetup setup;
+
+   setupTrend.IsValid = false;
+   setupFib.IsValid = false;
+   setupPattern.IsValid = false;
+   setupZone.IsValid = false;
+
+   //----------------------------------------------------------
+   // Get trend
+   //----------------------------------------------------------
+   bool setupTrendValid =
+      TrendEngine.Analyze(setupTrend);
+
+   //----------------------------------------------------------
+   // Get active impulse / Fibonacci
+   //----------------------------------------------------------
+   SwingPoint setupImpulseStart;
+   SwingPoint setupImpulseEnd;
+
+   if(TrendEngine.GetActiveImpulse(
+         setupImpulseStart,
+         setupImpulseEnd))
+   {
+      if(setupImpulseStart.Type == SWING_LOW &&
+         setupImpulseEnd.Type == SWING_HIGH)
+      {
+         Fibonacci.Calculate(
+            setupImpulseEnd.Price,
+            setupImpulseStart.Price,
+            setupFib);
+      }
+      else
+      if(setupImpulseStart.Type == SWING_HIGH &&
+         setupImpulseEnd.Type == SWING_LOW)
+      {
+         Fibonacci.Calculate(
+            setupImpulseStart.Price,
+            setupImpulseEnd.Price,
+            setupFib);
+      }
+   }
+
+   //----------------------------------------------------------
+   // Get pattern
+   //----------------------------------------------------------
+   PatternEngine.Analyze(setupPattern);
+
+   //----------------------------------------------------------
+   // Get S/R
+   //
+   // Use your existing S/R detection here.
+   //----------------------------------------------------------
+   if(supportZone.IsValid)
+   {
+      setupZone = supportZone;
+   }
+   else
+   if(resistanceZone.IsValid)
+   {
+      setupZone = resistanceZone;
+   }
+
+   //----------------------------------------------------------
+   // Build preliminary setup
+   //----------------------------------------------------------
+   if(setupTrendValid)
+   {
+      if(SetupEngine.Analyze(
+            setupTrend,
+            setupFib,
+            setupPattern,
+            setupZone,
+            setup))
+      {
+         if(setup.IsValid)
+         {
+            Logger.Info(
+               "Setup: VALID");
+
+            if(setup.Direction == DIRECTION_BUY)
+               Logger.Info("Direction: BUY");
+            else
+            if(setup.Direction == DIRECTION_SELL)
+               Logger.Info("Direction: SELL");
+
+            Logger.Info(
+               "Confidence: "
+               + DoubleToString(
+                  setup.Confidence,
+                  2));
+
+            Logger.Info(
+               "Strategy Health: "
+               + DoubleToString(
+                  setup.StrategyHealth,
+                  2));
+         }
+         else
+         {
+            Logger.Info(
+               "Setup: NOT VALID");
+         }
+      }
+      else
+      {
+         Logger.Warning(
+            "Setup analysis failed.");
+      }
+   }
+   else
+   {
+      Logger.Warning(
+         "Unable to determine trend for setup.");
    }
 
    return(INIT_SUCCEEDED);

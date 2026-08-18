@@ -3,6 +3,7 @@
 
 #include "../Core/Types.mqh"
 #include "SwingEngine.mqh"
+#include "../Utils/ATR.mqh"
 
 class CPatternEngine
 {
@@ -411,6 +412,107 @@ public:
       lower = High[shift];
       upper = Low[shift + 2];
 
+      return(true);
+   }
+
+      //----------------------------------------------------------
+   // Analyze available chart patterns
+   //----------------------------------------------------------
+   bool Analyze(PatternData &pattern)
+   {
+      pattern.IsValid = false;
+      pattern.Pattern = PATTERN_NONE;
+      pattern.Score = 0.0;
+      pattern.DetectionTime = 0;
+
+      double tolerance =
+         ATR.Current(ATRPeriod) * 0.5;
+
+      if(tolerance <= 0.0)
+         return(false);
+
+      //-------------------------------------------------------
+      // W Pattern
+      //-------------------------------------------------------
+      if(IsWPattern(tolerance))
+      {
+         pattern.IsValid = true;
+         pattern.Pattern = PATTERN_W;
+         pattern.Score = 1.0;
+         pattern.DetectionTime = Time[1];
+
+         return(true);
+      }
+
+      //-------------------------------------------------------
+      // M Pattern
+      //-------------------------------------------------------
+      if(IsMPattern(tolerance))
+      {
+         pattern.IsValid = true;
+         pattern.Pattern = PATTERN_M;
+         pattern.Score = 1.0;
+         pattern.DetectionTime = Time[1];
+
+         return(true);
+      }
+
+      //-------------------------------------------------------
+      // Head & Shoulders
+      //-------------------------------------------------------
+      if(IsHeadAndShoulders(tolerance))
+      {
+         pattern.IsValid = true;
+         pattern.Pattern = PATTERN_HEAD_SHOULDERS;
+         pattern.Score = 1.0;
+         pattern.DetectionTime = Time[1];
+
+         return(true);
+      }
+
+      //-------------------------------------------------------
+      // Inverse Head & Shoulders
+      //-------------------------------------------------------
+      if(IsInverseHeadAndShoulders(tolerance))
+      {
+         pattern.IsValid = true;
+         pattern.Pattern =
+            PATTERN_INVERSE_HEAD_SHOULDERS;
+         pattern.Score = 1.0;
+         pattern.DetectionTime = Time[1];
+
+         return(true);
+      }
+
+      //-------------------------------------------------------
+      // Bullish FVG
+      //-------------------------------------------------------
+      if(IsBullishFVG(1))
+      {
+         pattern.IsValid = true;
+         pattern.Pattern = PATTERN_FVG;
+         pattern.Score = 1.0;
+         pattern.DetectionTime = Time[1];
+
+         return(true);
+      }
+
+      //-------------------------------------------------------
+      // Bearish FVG
+      //-------------------------------------------------------
+      if(IsBearishFVG(1))
+      {
+         pattern.IsValid = true;
+         pattern.Pattern = PATTERN_FVG;
+         pattern.Score = 1.0;
+         pattern.DetectionTime = Time[1];
+
+         return(true);
+      }
+
+      //-------------------------------------------------------
+      // No pattern
+      //-------------------------------------------------------
       return(true);
    }
 
