@@ -277,4 +277,17 @@ struct TradeSetup
    double                  StrategyHealth;
 };
 
+struct PullbackInfo
+{
+   bool IsValid;
+
+   ENUM_TREND Direction;
+
+   int Shift;
+
+   double Price;
+
+   double FibLevel;
+};
+
 #endif

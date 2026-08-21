@@ -11,6 +11,7 @@
 #include <Core/Constants.mqh>
 #include <Utils/Fibonacci.mqh>
 #include <Market/FibonacciEngine.mqh>
+#include <Market/FirstPullback.mqh>
 #include <Config/Inputs.mqh>
 #include <Core/Logger.mqh>
 #include <Market/PatternEngine.mqh>
@@ -26,6 +27,7 @@
 
 CATR ATR;
 CFibonacci Fibonacci;
+CFirstPullback FirstPullback;
 CLogger  Logger;
 CPatternEngine PatternEngine;
 CPullbackEngine PullbackEngine;
@@ -1006,6 +1008,7 @@ else
             setupFib);
       }
    }
+
 
    //----------------------------------------------------------
    // Get pattern
