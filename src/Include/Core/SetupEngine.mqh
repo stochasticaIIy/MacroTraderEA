@@ -8,11 +8,11 @@ class CSetupEngine
 public:
 
    //----------------------------------------------------------
-   // Build a preliminary trade setup from existing analysis
+   // Build a preliminary trade setup
    //----------------------------------------------------------
-
    bool Analyze(TrendInfo &trend,
                 FibData &fib,
+                PullbackInfo &pullback,
                 PatternData &pattern,
                 SRZone &zone,
                 TradeSetup &setup)
@@ -23,9 +23,11 @@ public:
       setup.IsValid = false;
       setup.Symbol = Symbol();
       setup.Direction = DIRECTION_NONE;
+      setup.Rejection = SETUP_NO_REJECTION;
 
       setup.Trend = trend;
       setup.Fib = fib;
+      setup.Pullback = pullback;
       setup.Pattern = pattern;
       setup.Zone = zone;
 
@@ -37,88 +39,101 @@ public:
       setup.StrategyHealth = 0.0;
 
       //-------------------------------------------------------
-      // Trend analysis itself must be valid
+      // Trend must be valid
       //-------------------------------------------------------
       if(!trend.IsValid)
+      {
+         setup.Rejection = SETUP_INVALID_TREND;
          return(false);
+      }
 
       //-------------------------------------------------------
-      // Range = no trade setup
+      // Range = no setup
       //-------------------------------------------------------
       if(trend.Trend == TREND_RANGE)
       {
-         setup.Direction = DIRECTION_NONE;
+         setup.Rejection = SETUP_RANGE;
          return(true);
       }
 
       //-------------------------------------------------------
-      // Determine direction
+      // Direction
       //-------------------------------------------------------
       if(trend.Trend == TREND_UP)
-      {
          setup.Direction = DIRECTION_BUY;
-      }
       else
       if(trend.Trend == TREND_DOWN)
-      {
          setup.Direction = DIRECTION_SELL;
-      }
       else
-      {
-         setup.Direction = DIRECTION_NONE;
          return(true);
-      }
 
       //-------------------------------------------------------
-      // Fibonacci must be available
+      // Fibonacci required
       //-------------------------------------------------------
       if(!fib.IsValid)
+      {
+         setup.Rejection = SETUP_NO_FIBONACCI;
          return(true);
+      }
 
       //-------------------------------------------------------
-      // Pattern must be available
+      // First pullback required
+      //-------------------------------------------------------
+      if(!pullback.IsValid)
+      {
+         setup.Rejection = SETUP_NO_PULLBACK;
+         return(true);
+      }
+
+      //-------------------------------------------------------
+      // Pattern required
       //-------------------------------------------------------
       if(!pattern.IsValid)
+      {
+         setup.Rejection = SETUP_NO_PATTERN;
          return(true);
+      }
 
       //-------------------------------------------------------
-      // S/R must be available
+      // S/R required
       //-------------------------------------------------------
       if(!zone.IsValid)
+      {
+         setup.Rejection = SETUP_NO_SR_ZONE;
          return(true);
+      }
 
       //-------------------------------------------------------
-      // S/R must be significant
+      // Significant S/R required
       //-------------------------------------------------------
       if(zone.Strength < 0.66)
+      {
+         setup.Rejection = SETUP_SR_NOT_SIGNIFICANT;
          return(true);
+      }
 
       //-------------------------------------------------------
-      // Preliminary confidence
+      // Confidence
       //-------------------------------------------------------
       double score = 0.0;
 
-      // Trend
-      score += 0.25;
+      score += 0.20;   // Trend
+      score += 0.20;   // Fibonacci
+      score += 0.20;   // First Pullback
+      score += 0.20;   // Pattern
 
-      // Fibonacci
-      score += 0.25;
-
-      // Pattern
-      score += 0.25;
-
-      // S/R
       if(zone.Strength >= 1.0)
-         score += 0.25;
-      else
          score += 0.20;
+      else
+         score += 0.15;
 
       setup.Confidence = score;
       setup.StrategyHealth = score;
 
       //-------------------------------------------------------
-      // Preliminary setup is valid
+      // Valid preliminary setup
       //-------------------------------------------------------
+      setup.Rejection = SETUP_NO_REJECTION;
       setup.IsValid = true;
 
       return(true);

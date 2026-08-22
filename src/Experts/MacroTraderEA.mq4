@@ -965,12 +965,14 @@ else
 
    TrendInfo setupTrend;
    FibData setupFib;
+   PullbackInfo setupPullback;
    PatternData setupPattern;
    SRZone setupZone;
    TradeSetup setup;
 
    setupTrend.IsValid = false;
    setupFib.IsValid = false;
+   setupPullback.IsValid = false;
    setupPattern.IsValid = false;
    setupZone.IsValid = false;
 
@@ -1009,6 +1011,47 @@ else
       }
    }
 
+   //----------------------------------------------------------
+   // Get First Pullback
+   //----------------------------------------------------------
+   if(setupFib.IsValid)
+   {
+      TrendInfo pullbackTrend;
+
+      if(TrendEngine.Analyze(pullbackTrend))
+      {
+         if(pullbackTrend.Trend == TREND_UP ||
+            pullbackTrend.Trend == TREND_DOWN)
+         {
+            SwingPoint pullbackStart;
+            SwingPoint pullbackEnd;
+
+            if(TrendEngine.GetActiveImpulse(
+                  pullbackStart,
+                  pullbackEnd))
+            {
+               bool reached =
+                  PullbackEngine.FirstPullbackReached(
+                     pullbackTrend.Trend,
+                     setupFib.High,
+                     setupFib.Low,
+                     pullbackEnd.Time);
+
+               if(reached)
+               {
+                  setupPullback.IsValid = true;
+                  setupPullback.Direction =
+                     pullbackTrend.Trend;
+
+                  setupPullback.Price = Close[1];
+                  setupPullback.FibLevel =
+                     setupFib.Fib382;
+                  setupPullback.Shift = 1;
+               }
+            }
+         }
+      }
+   }
 
    //----------------------------------------------------------
    // Get pattern
@@ -1036,11 +1079,12 @@ else
    if(setupTrendValid)
    {
       if(SetupEngine.Analyze(
-            setupTrend,
-            setupFib,
-            setupPattern,
-            setupZone,
-            setup))
+      setupTrend,
+      setupFib,
+      setupPullback,
+      setupPattern,
+      setupZone,
+      setup))
       {
          if(setup.IsValid)
          {
@@ -1067,8 +1111,42 @@ else
          }
          else
          {
-            Logger.Info(
-               "Setup: NOT VALID");
+            Logger.Info("Setup: NOT VALID");
+
+            switch(setup.Rejection)
+            {
+               case SETUP_INVALID_TREND:
+                  Logger.Info("Reason: Invalid trend");
+                  break;
+
+               case SETUP_RANGE:
+                  Logger.Info("Reason: Market is ranging");
+                  break;
+
+               case SETUP_NO_FIBONACCI:
+                  Logger.Info("Reason: Fibonacci unavailable");
+                  break;
+
+               case SETUP_NO_PULLBACK:
+                  Logger.Info("Reason: First pullback not reached");
+                  break;
+
+               case SETUP_NO_PATTERN:
+                  Logger.Info("Reason: No valid pattern");
+                  break;
+
+               case SETUP_NO_SR_ZONE:
+                  Logger.Info("Reason: No S/R zone");
+                  break;
+
+               case SETUP_SR_NOT_SIGNIFICANT:
+                  Logger.Info("Reason: S/R not significant");
+                  break;
+
+               default:
+                  Logger.Info("Reason: Unknown");
+                  break;
+            }
          }
       }
       else

@@ -244,6 +244,21 @@ struct MacroBiasData
 };
 
 //--------------------------------------------------------------
+// Setup Rejection Reasons
+//--------------------------------------------------------------
+enum ENUM_SETUP_REJECTION
+{
+   SETUP_NO_REJECTION = 0,
+   SETUP_INVALID_TREND,
+   SETUP_RANGE,
+   SETUP_NO_FIBONACCI,
+   SETUP_NO_PULLBACK,
+   SETUP_NO_PATTERN,
+   SETUP_NO_SR_ZONE,
+   SETUP_SR_NOT_SIGNIFICANT
+};
+
+//--------------------------------------------------------------
 // Trade Setup
 //--------------------------------------------------------------
 struct TradeSetup
@@ -257,6 +272,8 @@ struct TradeSetup
    TrendInfo               Trend;
 
    FibData                 Fib;
+
+   PullbackInfo             Pullback;
 
    PatternData             Pattern;
 
@@ -275,6 +292,9 @@ struct TradeSetup
    double                  Confidence;
 
    double                  StrategyHealth;
+
+   ENUM_SETUP_REJECTION    Rejection;
+
 };
 
 struct PullbackInfo
