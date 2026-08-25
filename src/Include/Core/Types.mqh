@@ -258,6 +258,19 @@ enum ENUM_SETUP_REJECTION
    SETUP_SR_NOT_SIGNIFICANT
 };
 
+struct PullbackInfo
+{
+   bool IsValid;
+
+   ENUM_TREND Direction;
+
+   int Shift;
+
+   double Price;
+
+   double FibLevel;
+};
+
 //--------------------------------------------------------------
 // Trade Setup
 //--------------------------------------------------------------
@@ -295,19 +308,6 @@ struct TradeSetup
 
    ENUM_SETUP_REJECTION    Rejection;
 
-};
-
-struct PullbackInfo
-{
-   bool IsValid;
-
-   ENUM_TREND Direction;
-
-   int Shift;
-
-   double Price;
-
-   double FibLevel;
 };
 
 #endif

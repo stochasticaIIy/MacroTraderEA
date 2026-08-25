@@ -9,6 +9,7 @@
 #include <Utils/ATR.mqh>
 #include <Config/Config.mqh>
 #include <Core/Constants.mqh>
+#include <Market/EntryEngine.mqh>
 #include <Utils/Fibonacci.mqh>
 #include <Market/FibonacciEngine.mqh>
 #include <Market/FirstPullback.mqh>
@@ -21,11 +22,13 @@
 #include <Market/SupportResistance.mqh>
 #include <Market/SwingEngine.mqh>
 #include <Market/SwingFilter.mqh>
+#include <Trade/TradeLevels.mqh>
 #include <Market/TrendEngine.mqh>
 #include <Core/Version.mqh>
 #include <Utils/ZigZag.mqh>
 
 CATR ATR;
+CEntryEngine EntryEngine;
 CFibonacci Fibonacci;
 CFirstPullback FirstPullback;
 CLogger  Logger;
@@ -37,6 +40,7 @@ CVersion EA_Version;
 CConfig Config;
 CRiskManager RiskManager;
 CSwingFilter SwingFilter(ATR);
+CTradeLevels TradeLevels;
 CZigZag ZigZag(
     ZigZagDepth,
     ZigZagDeviation,
@@ -1159,6 +1163,143 @@ else
    {
       Logger.Warning(
          "Unable to determine trend for setup.");
+   }
+
+   //----------------------------------------------------------
+   // Entry Validation Test
+   //----------------------------------------------------------
+   Logger.Separator();
+   Logger.Info("Entry Validation Test");
+
+   if(setup.IsValid)
+   {
+      if(EntryEngine.Validate(setup))
+      {
+         Logger.Info("Entry: VALID");
+
+         if(setup.Direction == DIRECTION_BUY)
+            Logger.Info("Entry Direction: BUY");
+         else
+         if(setup.Direction == DIRECTION_SELL)
+            Logger.Info("Entry Direction: SELL");
+
+         Logger.Info(
+            "Entry Price: "
+            + DoubleToString(
+               setup.Entry,
+               Digits));
+      }
+      else
+      {
+         Logger.Info("Entry: INVALID");
+      }
+   }
+   else
+   {
+      Logger.Info(
+         "Entry Validation skipped: Setup is not valid.");
+   }
+
+   //----------------------------------------------------------
+   // Trade Levels Test
+   //----------------------------------------------------------
+   Logger.Separator();
+   Logger.Info("Trade Levels Test");
+
+   if(EntryEngine.Validate(setup))
+   {
+      double testATR =
+         ATR.Current(ATRPeriod);
+
+      if(TradeLevels.Calculate(
+            setup,
+            testATR,
+            StopLossATR,
+            TakeProfitATR))
+      {
+         Logger.Info(
+            "Entry: "
+            + DoubleToString(
+               setup.Entry,
+               Digits));
+
+         Logger.Info(
+            "Stop Loss: "
+            + DoubleToString(
+               setup.StopLoss,
+               Digits));
+
+         Logger.Info(
+            "Take Profit: "
+            + DoubleToString(
+               setup.TakeProfit,
+               Digits));
+
+         Logger.Info(
+            "SL Distance: "
+            + DoubleToString(
+               MathAbs(
+                  setup.Entry - setup.StopLoss),
+               Digits));
+
+         Logger.Info(
+            "TP Distance: "
+            + DoubleToString(
+               MathAbs(
+                  setup.TakeProfit - setup.Entry),
+               Digits));
+      }
+      else
+      {
+         Logger.Warning(
+            "Unable to calculate trade levels.");
+      }
+   }
+   else
+   {
+      Logger.Info(
+         "Trade Levels skipped: Entry is not valid.");
+   }
+
+   //----------------------------------------------------------
+   // Position Sizing Test
+   //----------------------------------------------------------
+   Logger.Separator();
+   Logger.Info("Position Sizing Test");
+
+   double actualSLDistance =
+      TradeLevels.StopLossDistance(setup);
+
+   if(actualSLDistance > 0.0)
+   {
+      double calculatedLot =
+         RiskManager.CalculateLotSize(
+            Config.RiskPercent(),
+            actualSLDistance);
+
+      Logger.Info(
+         "Risk Percent: "
+         + DoubleToString(
+            Config.RiskPercent(),
+            2)
+         + "%");
+
+      Logger.Info(
+         "SL Distance: "
+         + DoubleToString(
+            actualSLDistance,
+            Digits));
+
+      Logger.Info(
+         "Calculated Lot Size: "
+         + DoubleToString(
+            calculatedLot,
+            2));
+   }
+   else
+   {
+      Logger.Warning(
+         "Unable to determine SL distance.");
    }
 
    return(INIT_SUCCEEDED);
