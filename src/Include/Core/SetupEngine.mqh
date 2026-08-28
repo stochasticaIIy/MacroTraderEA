@@ -10,12 +10,12 @@ public:
    //----------------------------------------------------------
    // Build a preliminary trade setup
    //----------------------------------------------------------
-   bool Analyze(TrendInfo &trend,
-                FibData &fib,
-                PullbackInfo &pullback,
-                PatternData &pattern,
-                SRZone &zone,
-                TradeSetup &setup)
+   bool Analyze(
+      TrendInfo &trend,
+      FibData &fib,
+      PatternData &pattern,
+      SRZone &zone,
+      TradeSetup &setup)
    {
       //-------------------------------------------------------
       // Reset setup
@@ -23,11 +23,9 @@ public:
       setup.IsValid = false;
       setup.Symbol = Symbol();
       setup.Direction = DIRECTION_NONE;
-      setup.Rejection = SETUP_NO_REJECTION;
 
       setup.Trend = trend;
       setup.Fib = fib;
-      setup.Pullback = pullback;
       setup.Pattern = pattern;
       setup.Zone = zone;
 
@@ -38,34 +36,45 @@ public:
       setup.Confidence = 0.0;
       setup.StrategyHealth = 0.0;
 
+      setup.Rejection = SETUP_NO_REJECTION;
+
       //-------------------------------------------------------
       // Trend must be valid
       //-------------------------------------------------------
       if(!trend.IsValid)
       {
          setup.Rejection = SETUP_INVALID_TREND;
-         return(false);
+         return(true);
       }
 
       //-------------------------------------------------------
-      // Range = no setup
+      // Range = no trade
       //-------------------------------------------------------
       if(trend.Trend == TREND_RANGE)
       {
+         setup.Direction = DIRECTION_NONE;
          setup.Rejection = SETUP_RANGE;
          return(true);
       }
 
       //-------------------------------------------------------
-      // Direction
+      // Determine direction
       //-------------------------------------------------------
       if(trend.Trend == TREND_UP)
+      {
          setup.Direction = DIRECTION_BUY;
+      }
       else
       if(trend.Trend == TREND_DOWN)
+      {
          setup.Direction = DIRECTION_SELL;
+      }
       else
+      {
+         setup.Direction = DIRECTION_NONE;
+         setup.Rejection = SETUP_INVALID_TREND;
          return(true);
+      }
 
       //-------------------------------------------------------
       // Fibonacci required
@@ -77,9 +86,9 @@ public:
       }
 
       //-------------------------------------------------------
-      // First pullback required
+      // Pullback required
       //-------------------------------------------------------
-      if(!pullback.IsValid)
+      if(!setup.Pullback.IsValid)
       {
          setup.Rejection = SETUP_NO_PULLBACK;
          return(true);
@@ -95,7 +104,7 @@ public:
       }
 
       //-------------------------------------------------------
-      // S/R required
+      // S/R zone required
       //-------------------------------------------------------
       if(!zone.IsValid)
       {
@@ -104,7 +113,7 @@ public:
       }
 
       //-------------------------------------------------------
-      // Significant S/R required
+      // S/R must be significant
       //-------------------------------------------------------
       if(zone.Strength < 0.66)
       {
@@ -113,28 +122,33 @@ public:
       }
 
       //-------------------------------------------------------
-      // Confidence
+      // Preliminary confidence
       //-------------------------------------------------------
       double score = 0.0;
 
-      score += 0.20;   // Trend
-      score += 0.20;   // Fibonacci
-      score += 0.20;   // First Pullback
-      score += 0.20;   // Pattern
+      // Trend
+      score += 0.25;
 
+      // Fibonacci
+      score += 0.25;
+
+      // Pattern
+      score += 0.25;
+
+      // S/R
       if(zone.Strength >= 1.0)
-         score += 0.20;
+         score += 0.25;
       else
-         score += 0.15;
+         score += 0.20;
 
       setup.Confidence = score;
       setup.StrategyHealth = score;
 
       //-------------------------------------------------------
-      // Valid preliminary setup
+      // Setup is valid
       //-------------------------------------------------------
-      setup.Rejection = SETUP_NO_REJECTION;
       setup.IsValid = true;
+      setup.Rejection = SETUP_NO_REJECTION;
 
       return(true);
    }

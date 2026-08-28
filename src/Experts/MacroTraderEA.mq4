@@ -969,16 +969,20 @@ else
 
    TrendInfo setupTrend;
    FibData setupFib;
-   PullbackInfo setupPullback;
    PatternData setupPattern;
    SRZone setupZone;
    TradeSetup setup;
 
-   setupTrend.IsValid = false;
+   //----------------------------------------------------------
+   // Initialize setup
+   //----------------------------------------------------------
+   setup.IsValid = false;
+   setup.Direction = DIRECTION_NONE;
    setupFib.IsValid = false;
-   setupPullback.IsValid = false;
    setupPattern.IsValid = false;
    setupZone.IsValid = false;
+
+   setup.Pullback.IsValid = false;
 
    //----------------------------------------------------------
    // Get trend
@@ -1016,46 +1020,38 @@ else
    }
 
    //----------------------------------------------------------
-   // Get First Pullback
+   // First Pullback
    //----------------------------------------------------------
+   PullbackInfo setupPullback;
+
+   setupPullback.IsValid = false;
+
    if(setupFib.IsValid)
    {
-      TrendInfo pullbackTrend;
-
-      if(TrendEngine.Analyze(pullbackTrend))
+      if(setupImpulseStart.Type == SWING_LOW &&
+         setupImpulseEnd.Type == SWING_HIGH)
       {
-         if(pullbackTrend.Trend == TREND_UP ||
-            pullbackTrend.Trend == TREND_DOWN)
-         {
-            SwingPoint pullbackStart;
-            SwingPoint pullbackEnd;
-
-            if(TrendEngine.GetActiveImpulse(
-                  pullbackStart,
-                  pullbackEnd))
-            {
-               bool reached =
-                  PullbackEngine.FirstPullbackReached(
-                     pullbackTrend.Trend,
-                     setupFib.High,
-                     setupFib.Low,
-                     pullbackEnd.Time);
-
-               if(reached)
-               {
-                  setupPullback.IsValid = true;
-                  setupPullback.Direction =
-                     pullbackTrend.Trend;
-
-                  setupPullback.Price = Close[1];
-                  setupPullback.FibLevel =
-                     setupFib.Fib382;
-                  setupPullback.Shift = 1;
-               }
-            }
-         }
+         FirstPullback.CheckUptrend(
+            setupFib.Fib382,
+            1,
+            setupPullback);
+      }
+      else
+      if(setupImpulseStart.Type == SWING_HIGH &&
+         setupImpulseEnd.Type == SWING_LOW)
+      {
+         FirstPullback.CheckDowntrend(
+            setupFib.Fib382,
+            1,
+            setupPullback);
       }
    }
+
+   //----------------------------------------------------------
+   // IMPORTANT:
+   // Copy the detected pullback into the TradeSetup
+   //----------------------------------------------------------
+   setup.Pullback = setupPullback;
 
    //----------------------------------------------------------
    // Get pattern
@@ -1064,8 +1060,6 @@ else
 
    //----------------------------------------------------------
    // Get S/R
-   //
-   // Use your existing S/R detection here.
    //----------------------------------------------------------
    if(supportZone.IsValid)
    {
@@ -1083,17 +1077,15 @@ else
    if(setupTrendValid)
    {
       if(SetupEngine.Analyze(
-      setupTrend,
-      setupFib,
-      setupPullback,
-      setupPattern,
-      setupZone,
-      setup))
+            setupTrend,
+            setupFib,
+            setupPattern,
+            setupZone,
+            setup))
       {
          if(setup.IsValid)
          {
-            Logger.Info(
-               "Setup: VALID");
+            Logger.Info("Setup: VALID");
 
             if(setup.Direction == DIRECTION_BUY)
                Logger.Info("Direction: BUY");
@@ -1120,35 +1112,35 @@ else
             switch(setup.Rejection)
             {
                case SETUP_INVALID_TREND:
-                  Logger.Info("Reason: Invalid trend");
+                  Logger.Info("Rejection: INVALID TREND");
                   break;
 
                case SETUP_RANGE:
-                  Logger.Info("Reason: Market is ranging");
+                  Logger.Info("Rejection: MARKET RANGE");
                   break;
 
                case SETUP_NO_FIBONACCI:
-                  Logger.Info("Reason: Fibonacci unavailable");
+                  Logger.Info("Rejection: NO FIBONACCI");
                   break;
 
                case SETUP_NO_PULLBACK:
-                  Logger.Info("Reason: First pullback not reached");
+                  Logger.Info("Rejection: NO FIRST PULLBACK");
                   break;
 
                case SETUP_NO_PATTERN:
-                  Logger.Info("Reason: No valid pattern");
+                  Logger.Info("Rejection: NO PATTERN");
                   break;
 
                case SETUP_NO_SR_ZONE:
-                  Logger.Info("Reason: No S/R zone");
+                  Logger.Info("Rejection: NO S/R ZONE");
                   break;
 
                case SETUP_SR_NOT_SIGNIFICANT:
-                  Logger.Info("Reason: S/R not significant");
+                  Logger.Info("Rejection: S/R NOT SIGNIFICANT");
                   break;
 
                default:
-                  Logger.Info("Reason: Unknown");
+                  Logger.Info("Rejection: NONE");
                   break;
             }
          }
@@ -1166,57 +1158,47 @@ else
    }
 
    //----------------------------------------------------------
-   // Entry Validation Test
+   // Position Sizing Test
    //----------------------------------------------------------
    Logger.Separator();
-   Logger.Info("Entry Validation Test");
+   Logger.Info("Position Sizing Test");
 
-   if(setup.IsValid)
+   if(!setup.IsValid)
    {
-      if(EntryEngine.Validate(setup))
-      {
-         Logger.Info("Entry: VALID");
-
-         if(setup.Direction == DIRECTION_BUY)
-            Logger.Info("Entry Direction: BUY");
-         else
-         if(setup.Direction == DIRECTION_SELL)
-            Logger.Info("Entry Direction: SELL");
-
-         Logger.Info(
-            "Entry Price: "
-            + DoubleToString(
-               setup.Entry,
-               Digits));
-      }
-      else
-      {
-         Logger.Info("Entry: INVALID");
-      }
+      Logger.Info(
+         "Position Sizing skipped: Setup is not valid.");
+   }
+   else
+   if(setup.Entry <= 0.0)
+   {
+      Logger.Warning(
+         "Position Sizing skipped: Entry is invalid.");
+   }
+   else
+   if(setup.StopLoss <= 0.0)
+   {
+      Logger.Warning(
+         "Position Sizing skipped: Stop Loss is invalid.");
    }
    else
    {
-      Logger.Info(
-         "Entry Validation skipped: Setup is not valid.");
-   }
+      double actualSLDistance =
+         TradeLevels.StopLossDistance(setup);
 
-   //----------------------------------------------------------
-   // Trade Levels Test
-   //----------------------------------------------------------
-   Logger.Separator();
-   Logger.Info("Trade Levels Test");
-
-   if(EntryEngine.Validate(setup))
-   {
-      double testATR =
-         ATR.Current(ATRPeriod);
-
-      if(TradeLevels.Calculate(
-            setup,
-            testATR,
-            StopLossATR,
-            TakeProfitATR))
+      if(actualSLDistance > 0.0)
       {
+         double calculatedLot =
+            RiskManager.CalculateLotSize(
+               Config.RiskPercent(),
+               actualSLDistance);
+
+         Logger.Info(
+            "Risk Percent: "
+            + DoubleToString(
+               Config.RiskPercent(),
+               2)
+            + "%");
+
          Logger.Info(
             "Entry: "
             + DoubleToString(
@@ -1230,76 +1212,22 @@ else
                Digits));
 
          Logger.Info(
-            "Take Profit: "
-            + DoubleToString(
-               setup.TakeProfit,
-               Digits));
-
-         Logger.Info(
             "SL Distance: "
             + DoubleToString(
-               MathAbs(
-                  setup.Entry - setup.StopLoss),
+               actualSLDistance,
                Digits));
 
          Logger.Info(
-            "TP Distance: "
+            "Calculated Lot Size: "
             + DoubleToString(
-               MathAbs(
-                  setup.TakeProfit - setup.Entry),
-               Digits));
+               calculatedLot,
+               2));
       }
       else
       {
          Logger.Warning(
-            "Unable to calculate trade levels.");
+            "Unable to determine SL distance.");
       }
-   }
-   else
-   {
-      Logger.Info(
-         "Trade Levels skipped: Entry is not valid.");
-   }
-
-   //----------------------------------------------------------
-   // Position Sizing Test
-   //----------------------------------------------------------
-   Logger.Separator();
-   Logger.Info("Position Sizing Test");
-
-   double actualSLDistance =
-      TradeLevels.StopLossDistance(setup);
-
-   if(actualSLDistance > 0.0)
-   {
-      double calculatedLot =
-         RiskManager.CalculateLotSize(
-            Config.RiskPercent(),
-            actualSLDistance);
-
-      Logger.Info(
-         "Risk Percent: "
-         + DoubleToString(
-            Config.RiskPercent(),
-            2)
-         + "%");
-
-      Logger.Info(
-         "SL Distance: "
-         + DoubleToString(
-            actualSLDistance,
-            Digits));
-
-      Logger.Info(
-         "Calculated Lot Size: "
-         + DoubleToString(
-            calculatedLot,
-            2));
-   }
-   else
-   {
-      Logger.Warning(
-         "Unable to determine SL distance.");
    }
 
    return(INIT_SUCCEEDED);
