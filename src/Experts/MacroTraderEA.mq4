@@ -1157,48 +1157,57 @@ else
          "Unable to determine trend for setup.");
    }
 
-   //----------------------------------------------------------
-   // Position Sizing Test
+      //----------------------------------------------------------
+   // Entry Validation Test
    //----------------------------------------------------------
    Logger.Separator();
-   Logger.Info("Position Sizing Test");
+   Logger.Info("Entry Validation Test");
 
    if(!setup.IsValid)
    {
       Logger.Info(
-         "Position Sizing skipped: Setup is not valid.");
-   }
-   else
-   if(setup.Entry <= 0.0)
-   {
-      Logger.Warning(
-         "Position Sizing skipped: Entry is invalid.");
-   }
-   else
-   if(setup.StopLoss <= 0.0)
-   {
-      Logger.Warning(
-         "Position Sizing skipped: Stop Loss is invalid.");
+         "Entry Validation skipped: Setup is not valid.");
    }
    else
    {
-      double actualSLDistance =
-         TradeLevels.StopLossDistance(setup);
-
-      if(actualSLDistance > 0.0)
+      if(EntryEngine.Validate(setup))
       {
-         double calculatedLot =
-            RiskManager.CalculateLotSize(
-               Config.RiskPercent(),
-               actualSLDistance);
+         Logger.Info("Entry: VALID");
 
          Logger.Info(
-            "Risk Percent: "
+            "Entry Price: "
             + DoubleToString(
-               Config.RiskPercent(),
-               2)
-            + "%");
+               setup.Entry,
+               Digits));
+      }
+      else
+      {
+         Logger.Info("Entry: NOT VALID");
+      }
+   }
 
+   //----------------------------------------------------------
+   // Trade Levels Test
+   //----------------------------------------------------------
+   Logger.Separator();
+   Logger.Info("Trade Levels Test");
+
+   if(setup.Entry <= 0.0)
+   {
+      Logger.Info(
+         "Trade Levels skipped: Entry is not valid.");
+   }
+   else
+   {
+      double tradeATR =
+         ATR.Current(ATRPeriod);
+
+      if(TradeLevels.Calculate(
+            setup,
+            tradeATR,
+            StopLossATR,
+            TakeProfitATR))
+      {
          Logger.Info(
             "Entry: "
             + DoubleToString(
@@ -1212,22 +1221,57 @@ else
                Digits));
 
          Logger.Info(
-            "SL Distance: "
+            "Take Profit: "
             + DoubleToString(
-               actualSLDistance,
+               setup.TakeProfit,
                Digits));
 
          Logger.Info(
-            "Calculated Lot Size: "
+            "SL Distance: "
             + DoubleToString(
-               calculatedLot,
-               2));
+               TradeLevels.StopLossDistance(setup),
+               Digits));
       }
       else
       {
          Logger.Warning(
-            "Unable to determine SL distance.");
+            "Unable to calculate trade levels.");
       }
+   }
+
+   //----------------------------------------------------------
+   // Position Sizing Test
+   //----------------------------------------------------------
+   Logger.Separator();
+   Logger.Info("Position Sizing Test");
+
+   double actualSLDistance =
+      TradeLevels.StopLossDistance(setup);
+
+   if(actualSLDistance <= 0.0)
+   {
+      Logger.Info(
+         "Position Sizing skipped: SL distance is not valid.");
+   }
+   else
+   {
+      double calculatedLot =
+         RiskManager.CalculateLotSize(
+            Config.RiskPercent(),
+            actualSLDistance);
+
+      Logger.Info(
+         "Risk Percent: "
+         + DoubleToString(
+            Config.RiskPercent(),
+            2)
+         + "%");
+
+      Logger.Info(
+         "Calculated Lot Size: "
+         + DoubleToString(
+            calculatedLot,
+            2));
    }
 
    return(INIT_SUCCEEDED);
