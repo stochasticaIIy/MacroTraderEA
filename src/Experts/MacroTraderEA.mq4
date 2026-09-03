@@ -22,6 +22,7 @@
 #include <Market/SupportResistance.mqh>
 #include <Market/SwingEngine.mqh>
 #include <Market/SwingFilter.mqh>
+#include <Trade/TradeGuard.mqh>
 #include <Trade/TradeLevels.mqh>
 #include <Market/TrendEngine.mqh>
 #include <Core/Version.mqh>
@@ -40,6 +41,7 @@ CVersion EA_Version;
 CConfig Config;
 CRiskManager RiskManager;
 CSwingFilter SwingFilter(ATR);
+CTradeGuard TradeGuard;
 CTradeLevels TradeLevels;
 CZigZag ZigZag(
     ZigZagDepth,
@@ -1157,7 +1159,7 @@ else
          "Unable to determine trend for setup.");
    }
 
-      //----------------------------------------------------------
+   //----------------------------------------------------------
    // Entry Validation Test
    //----------------------------------------------------------
    Logger.Separator();
@@ -1272,6 +1274,52 @@ else
          + DoubleToString(
             calculatedLot,
             2));
+   }
+
+   //----------------------------------------------------------
+   // Trade Guard Test
+   //----------------------------------------------------------
+   Logger.Separator();
+   Logger.Info("Trade Guard Test");
+
+   if(TradeGuard.IsTradingDay())
+   {
+      Logger.Info("Trading Day: ALLOWED");
+   }
+   else
+   {
+      Logger.Info("Trading Day: BLOCKED");
+   }
+
+   int openTrades =
+      TradeGuard.CountOpenTrades();
+
+   int tradesToday =
+      TradeGuard.CountTradesToday();
+
+   Logger.Info(
+      "Open Trades: "
+      + IntegerToString(openTrades));
+
+   Logger.Info(
+      "Trades Today: "
+      + IntegerToString(tradesToday));
+
+   Logger.Info(
+      "Max Open Trades: "
+      + IntegerToString(MaxOpenTrades));
+
+   Logger.Info(
+      "Max Trades Per Day: "
+      + IntegerToString(MaxTradesPerDay));
+
+   if(TradeGuard.CanOpenTrade())
+   {
+      Logger.Info("Trade Guard: PASS");
+   }
+   else
+   {
+      Logger.Info("Trade Guard: BLOCKED");
    }
 
    return(INIT_SUCCEEDED);

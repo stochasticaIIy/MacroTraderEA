@@ -34,15 +34,9 @@ public:
       if(takeProfitATR <= 0.0)
          return(false);
 
-      //-------------------------------------------------------
-      // Calculate distances
-      //-------------------------------------------------------
       double slDistance = atr * stopLossATR;
       double tpDistance = atr * takeProfitATR;
 
-      //-------------------------------------------------------
-      // BUY
-      //-------------------------------------------------------
       if(setup.Direction == DIRECTION_BUY)
       {
          setup.StopLoss =
@@ -51,9 +45,6 @@ public:
          setup.TakeProfit =
             setup.Entry + tpDistance;
       }
-      //-------------------------------------------------------
-      // SELL
-      //-------------------------------------------------------
       else
       if(setup.Direction == DIRECTION_SELL)
       {
@@ -68,9 +59,6 @@ public:
          return(false);
       }
 
-      //-------------------------------------------------------
-      // Sanity checks
-      //-------------------------------------------------------
       if(setup.StopLoss <= 0.0)
          return(false);
 
@@ -93,6 +81,57 @@ public:
 
       return(MathAbs(
          setup.Entry - setup.StopLoss));
+   }
+
+   //----------------------------------------------------------
+   // Return absolute take-profit distance
+   //----------------------------------------------------------
+   double TakeProfitDistance(TradeSetup &setup)
+   {
+      if(setup.Entry <= 0.0)
+         return(0.0);
+
+      if(setup.TakeProfit <= 0.0)
+         return(0.0);
+
+      return(MathAbs(
+         setup.Entry - setup.TakeProfit));
+   }
+
+   //----------------------------------------------------------
+   // Calculate actual risk/reward ratio
+   //----------------------------------------------------------
+   double RiskRewardRatio(TradeSetup &setup)
+   {
+      double slDistance =
+         StopLossDistance(setup);
+
+      double tpDistance =
+         TakeProfitDistance(setup);
+
+      if(slDistance <= 0.0)
+         return(0.0);
+
+      if(tpDistance <= 0.0)
+         return(0.0);
+
+      return(tpDistance / slDistance);
+   }
+
+   //----------------------------------------------------------
+   // Check minimum required risk/reward
+   //----------------------------------------------------------
+   bool MeetsMinimumRiskReward(
+      TradeSetup &setup,
+      double minimumRR)
+   {
+      if(minimumRR <= 0.0)
+         return(false);
+
+      double rr =
+         RiskRewardRatio(setup);
+
+      return(rr >= minimumRR);
    }
 };
 
