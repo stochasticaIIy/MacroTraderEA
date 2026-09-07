@@ -1274,6 +1274,24 @@ else
          + DoubleToString(
             calculatedLot,
             2));
+
+            double riskReward =
+            TradeLevels.RiskRewardRatio(setup);
+
+         Logger.Info(
+            "Risk/Reward Ratio: "
+            + DoubleToString(
+               riskReward,
+               2));
+
+         bool rrValid =
+            TradeLevels.MeetsMinimumRiskReward(
+               setup,
+               2.0);
+
+         Logger.Info(
+            "Minimum R:R 1:2: "
+            + string(rrValid ? "PASS" : "FAIL"));
    }
 
    //----------------------------------------------------------
