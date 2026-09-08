@@ -1165,27 +1165,34 @@ else
    Logger.Separator();
    Logger.Info("Entry Validation Test");
 
-   if(!setup.IsValid)
+   bool entryValid =
+      EntryEngine.Validate(setup);
+
+   Logger.Info(
+      "Entry Validation Result: "
+      + string(entryValid ? "PASS" : "FAIL"));
+
+   Logger.Info(
+      "Setup IsValid: "
+      + string(setup.IsValid ? "TRUE" : "FALSE"));
+
+   Logger.Info(
+      "Setup Direction: "
+      + IntegerToString(setup.Direction));
+
+   Logger.Info(
+      "Setup Entry: "
+      + DoubleToString(
+         setup.Entry,
+         Digits));
+
+   if(entryValid)
    {
-      Logger.Info(
-         "Entry Validation skipped: Setup is not valid.");
+      Logger.Info("Entry validation passed.");
    }
    else
    {
-      if(EntryEngine.Validate(setup))
-      {
-         Logger.Info("Entry: VALID");
-
-         Logger.Info(
-            "Entry Price: "
-            + DoubleToString(
-               setup.Entry,
-               Digits));
-      }
-      else
-      {
-         Logger.Info("Entry: NOT VALID");
-      }
+      Logger.Warning("Entry validation failed.");
    }
 
    //----------------------------------------------------------

@@ -7,35 +7,66 @@ class CTradeLevels
 {
 public:
 
-   //----------------------------------------------------------
-   // Calculate Stop Loss and Take Profit
-   //----------------------------------------------------------
    bool Calculate(
-      TradeSetup &setup,
-      double atr,
-      double stopLossATR,
-      double takeProfitATR)
+   TradeSetup &setup,
+   double atr,
+   double stopLossATR,
+   double takeProfitATR)
    {
       if(!setup.IsValid)
+      {
+         Print("[TradeLevels] FAIL: setup.IsValid = false");
          return(false);
+      }
 
       if(setup.Direction == DIRECTION_NONE)
+      {
+         Print("[TradeLevels] FAIL: Direction = NONE");
          return(false);
+      }
 
       if(setup.Entry <= 0.0)
+      {
+         Print("[TradeLevels] FAIL: Entry <= 0");
          return(false);
+      }
 
       if(atr <= 0.0)
+      {
+         Print("[TradeLevels] FAIL: ATR <= 0");
          return(false);
+      }
 
       if(stopLossATR <= 0.0)
+      {
+         Print("[TradeLevels] FAIL: StopLossATR <= 0");
          return(false);
+      }
 
       if(takeProfitATR <= 0.0)
+      {
+         Print("[TradeLevels] FAIL: TakeProfitATR <= 0");
          return(false);
+      }
 
       double slDistance = atr * stopLossATR;
       double tpDistance = atr * takeProfitATR;
+
+      Print(
+         "[TradeLevels] Inputs: Entry=",
+         DoubleToString(setup.Entry, Digits),
+         " ATR=",
+         DoubleToString(atr, Digits),
+         " SL_ATR=",
+         DoubleToString(stopLossATR, 2),
+         " TP_ATR=",
+         DoubleToString(takeProfitATR, 2));
+
+      Print(
+         "[TradeLevels] Distances: SL=",
+         DoubleToString(slDistance, Digits),
+         " TP=",
+         DoubleToString(tpDistance, Digits));
 
       if(setup.Direction == DIRECTION_BUY)
       {
@@ -56,14 +87,29 @@ public:
       }
       else
       {
+         Print("[TradeLevels] FAIL: Invalid direction");
          return(false);
       }
 
+      Print(
+         "[TradeLevels] Calculated: SL=",
+         DoubleToString(setup.StopLoss, Digits),
+         " TP=",
+         DoubleToString(setup.TakeProfit, Digits));
+
       if(setup.StopLoss <= 0.0)
+      {
+         Print("[TradeLevels] FAIL: StopLoss <= 0");
          return(false);
+      }
 
       if(setup.TakeProfit <= 0.0)
+      {
+         Print("[TradeLevels] FAIL: TakeProfit <= 0");
          return(false);
+      }
+
+      Print("[TradeLevels] SUCCESS");
 
       return(true);
    }
