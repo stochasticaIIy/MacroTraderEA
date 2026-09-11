@@ -6,24 +6,14 @@
 
 class CTrendEngine
 {
-private:
-
-   CSwingEngine *m_swingEngine;
-
 public:
-
-   //----------------------------------------------------------
-   // Constructor
-   //----------------------------------------------------------
-   CTrendEngine(CSwingEngine &swingEngine)
-   {
-      m_swingEngine = &swingEngine;
-   }
 
    //----------------------------------------------------------
    // Determine trend from last confirmed swings
    //----------------------------------------------------------
-   bool Analyze(TrendInfo &trend)
+   bool Analyze(
+      CSwingEngine &swingEngine,
+      TrendInfo &trend)
    {
       trend.IsValid = false;
       trend.Trend   = TREND_UNKNOWN;
@@ -35,7 +25,7 @@ public:
 
       SwingPoint swings[4];
 
-      if(!m_swingEngine.GetLastSwings(swings, 4))
+      if(!swingEngine.GetLastSwings(swings, 4))
          return(false);
 
       // Most recent first:
@@ -92,6 +82,7 @@ public:
             trend.HH = 1;
             trend.HL = 1;
             trend.Strength = 1.0;
+
             return(true);
          }
 
@@ -105,6 +96,7 @@ public:
             trend.LH = 1;
             trend.LL = 1;
             trend.Strength = 1.0;
+
             return(true);
          }
       }
@@ -118,25 +110,28 @@ public:
    //----------------------------------------------------------
    // Is the market ranging?
    //----------------------------------------------------------
-   bool IsRange()
+   bool IsRange(
+      CSwingEngine &swingEngine)
    {
       TrendInfo trend;
 
-      if(!Analyze(trend))
+      if(!Analyze(swingEngine, trend))
          return(false);
 
       return(trend.Trend == TREND_RANGE);
    }
 
-//----------------------------------------------------------
-// Get the active impulse for Fibonacci
-//----------------------------------------------------------
-   bool GetActiveImpulse(SwingPoint &start,
-                        SwingPoint &end)
+   //----------------------------------------------------------
+   // Get the active impulse for Fibonacci
+   //----------------------------------------------------------
+   bool GetActiveImpulse(
+      CSwingEngine &swingEngine,
+      SwingPoint &start,
+      SwingPoint &end)
    {
       TrendInfo trend;
 
-      if(!Analyze(trend))
+      if(!Analyze(swingEngine, trend))
          return(false);
 
       SwingPoint swings[4];
@@ -151,7 +146,7 @@ public:
       {
          SwingPoint s;
 
-         if(m_swingEngine.GetSwing(shift, s))
+         if(swingEngine.GetSwing(shift, s))
          {
             swings[found] = s;
             found++;
@@ -163,22 +158,36 @@ public:
       if(found < 2)
          return(false);
 
+      //-------------------------------------------------------
+      // Most recent swing is [0]
+      //
+      // UP:
+      // [0] HIGH
+      // [1] LOW
+      //
+      // Active impulse = [1] LOW -> [0] HIGH
+      //-------------------------------------------------------
       if(trend.Trend == TREND_UP)
       {
-         // Latest LOW -> Latest HIGH
-         if(swings[0].Type != SWING_LOW ||
-            swings[1].Type != SWING_HIGH)
+         if(swings[0].Type != SWING_HIGH ||
+            swings[1].Type != SWING_LOW)
             return(false);
 
-         start = swings[0];
-         end   = swings[1];
+         start = swings[1];
+         end   = swings[0];
 
          return(true);
       }
 
+      //-------------------------------------------------------
+      // DOWN:
+      // [0] LOW
+      // [1] HIGH
+      //
+      // Active impulse = [1] HIGH -> [0] LOW
+      //-------------------------------------------------------
       if(trend.Trend == TREND_DOWN)
       {
-         // Latest HIGH -> Latest LOW
          if(swings[0].Type != SWING_LOW ||
             swings[1].Type != SWING_HIGH)
             return(false);
@@ -191,7 +200,6 @@ public:
 
       return(false);
    }
-
 };
 
 #endif

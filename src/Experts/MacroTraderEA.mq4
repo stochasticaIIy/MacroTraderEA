@@ -48,7 +48,7 @@ CZigZag ZigZag(
     ZigZagDeviation,
     ZigZagBackstep);
     CSwingEngine SwingEngine(ZigZag);
-CTrendEngine TrendEngine(SwingEngine);
+CTrendEngine TrendEngine;
 
 //+------------------------------------------------------------------+
 //| Expert initialization                                            |
@@ -126,7 +126,7 @@ int OnInit()
 
    TrendInfo trend;
 
-   if(TrendEngine.Analyze(trend))
+   if(TrendEngine.Analyze(SwingEngine, trend))
    {
       switch(trend.Trend)
       {
@@ -189,7 +189,7 @@ int OnInit()
    Logger.Separator();
    Logger.Info("Range Test");
 
-   if(TrendEngine.IsRange())
+   if(TrendEngine.IsRange(SwingEngine))
       Logger.Info("Market State : RANGE");
    else
       Logger.Info("Market State : TREND");
@@ -313,7 +313,7 @@ int OnInit()
 
    TrendInfo activeTrend;
 
-   if(!TrendEngine.Analyze(activeTrend))
+   if(!TrendEngine.Analyze(SwingEngine, activeTrend))
    {
       Logger.Warning("Unable to determine market trend.");
    }
@@ -333,7 +333,10 @@ int OnInit()
       SwingPoint impulseEnd;
       FibData activeFib;
 
-      if(TrendEngine.GetActiveImpulse(impulseStart, impulseEnd))
+      if(TrendEngine.GetActiveImpulse(
+      SwingEngine,
+      impulseStart,
+      impulseEnd))
       {
          Logger.Info("Impulse Start: "
             + DoubleToString(impulseStart.Price, Digits));
@@ -405,7 +408,7 @@ int OnInit()
 
    TrendInfo pullbackTrend;
 
-   if(!TrendEngine.Analyze(pullbackTrend))
+   if(!TrendEngine.Analyze(SwingEngine, pullbackTrend))
    {
       Logger.Warning(
          "Unable to determine trend for pullback.");
@@ -424,8 +427,9 @@ int OnInit()
       FibData pullbackFib;
 
       if(!TrendEngine.GetActiveImpulse(
-            pullbackStart,
-            pullbackEnd))
+      SwingEngine,
+      pullbackStart,
+      pullbackEnd))
       {
          Logger.Warning(
             "Unable to determine active impulse for pullback.");
@@ -671,7 +675,7 @@ else
 
    TrendInfo patternTrend;
 
-   if(!TrendEngine.Analyze(patternTrend))
+   if(!TrendEngine.Analyze(SwingEngine, patternTrend))
    {
       Logger.Warning(
          "Unable to determine trend for pattern test.");
@@ -990,7 +994,9 @@ else
    // Get trend
    //----------------------------------------------------------
    bool setupTrendValid =
-      TrendEngine.Analyze(setupTrend);
+   TrendEngine.Analyze(
+      SwingEngine,
+      setupTrend);
 
    //----------------------------------------------------------
    // Get active impulse / Fibonacci
@@ -999,8 +1005,9 @@ else
    SwingPoint setupImpulseEnd;
 
    if(TrendEngine.GetActiveImpulse(
-         setupImpulseStart,
-         setupImpulseEnd))
+      SwingEngine,
+      setupImpulseStart,
+      setupImpulseEnd))
    {
       if(setupImpulseStart.Type == SWING_LOW &&
          setupImpulseEnd.Type == SWING_HIGH)
